@@ -253,7 +253,7 @@ class AppTheme {
       ),
     ),
     
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       color: vcbWhite,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -357,7 +357,7 @@ class AppTheme {
       ),
     ),
     
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       color: const Color(0xFF1E1E1E),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
