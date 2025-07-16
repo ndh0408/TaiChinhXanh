@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:local_auth/local_auth.dart';
-import 'package:encrypt/encrypt.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
@@ -22,8 +22,8 @@ class SecurityService {
   static const int _biometricTimeoutSeconds = 30;
 
   static final LocalAuthentication _localAuth = LocalAuthentication();
-  static Encrypter? _encrypter;
-  static IV? _iv;
+  static encrypt.Encrypter? _encrypter;
+  static encrypt.IV? _iv;
 
   // Initialize encryption
   static Future<void> initializeEncryption() async {
@@ -32,14 +32,14 @@ class SecurityService {
 
     if (keyString == null) {
       // Generate new encryption key
-      final key = Key.fromSecureRandom(32);
+      final key = encrypt.Key.fromSecureRandom(32);
       keyString = key.base64;
       await prefs.setString(_encryptionKeyKey, keyString);
     }
 
-    final key = Key.fromBase64(keyString);
-    _encrypter = Encrypter(AES(key));
-    _iv = IV.fromSecureRandom(16);
+    final key = encrypt.Key.fromBase64(keyString);
+    _encrypter = encrypt.Encrypter(encrypt.AES(key));
+    _iv = encrypt.IV.fromSecureRandom(16);
   }
 
   // Generate secure random salt
@@ -306,7 +306,7 @@ class SecurityService {
     }
 
     try {
-      final encrypted = Encrypted.fromBase64(encryptedData);
+      final encrypted = encrypt.Encrypted.fromBase64(encryptedData);
       return _encrypter!.decrypt(encrypted, iv: _iv!);
     } catch (e) {
       debugPrint('Decryption error: $e');
