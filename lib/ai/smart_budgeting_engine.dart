@@ -3,9 +3,6 @@ import '../models/budget.dart';
 import '../models/transaction.dart';
 import '../models/category.dart';
 import '../models/salary_record.dart';
-import '../services/transaction_service.dart';
-import '../services/budget_service.dart';
-import '../services/category_service.dart';
 
 class SmartBudgetingEngine {
   static const int _minDataPointsRequired = 3;
@@ -39,7 +36,7 @@ class SmartBudgetingEngine {
     // Generate suggestions for each category
     for (String categoryId in spendingAnalysis.keys) {
       SpendingAnalysis analysis = spendingAnalysis[categoryId]!;
-      Category category = categories.firstWhere((c) => c.id == categoryId);
+      Category category = categories.firstWhere((c) => c.id.toString() == categoryId);
 
       BudgetSuggestion? suggestion = _generateCategorySuggestion(
         categoryId: categoryId,
@@ -62,7 +59,7 @@ class SmartBudgetingEngine {
     );
 
     for (String categoryId in uncategorizedCategoryIds) {
-      Category category = categories.firstWhere((c) => c.id == categoryId);
+      Category category = categories.firstWhere((c) => c.id.toString() == categoryId);
       SpendingAnalysis analysis = spendingAnalysis[categoryId]!;
 
       BudgetSuggestion suggestion = BudgetSuggestion(
@@ -647,8 +644,9 @@ class SmartBudgetingEngine {
   }
 
   static double _linearRegressionPrediction(List<double> monthlySpending) {
-    if (monthlySpending.length < 2)
+    if (monthlySpending.length < 2) {
       return monthlySpending.isNotEmpty ? monthlySpending.first : 0.0;
+    }
 
     int n = monthlySpending.length;
     double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;

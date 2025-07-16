@@ -4,6 +4,9 @@ import '../models/budget.dart';
 import '../models/category.dart';
 import '../services/transaction_service.dart';
 import '../services/budget_service.dart';
+import '../models/ai_suggestion.dart';
+import '../models/salary_record.dart';
+import '../models/income_source.dart';
 
 class SmartSuggestionsEngine {
   // Generate personalized suggestions (simplified version)
