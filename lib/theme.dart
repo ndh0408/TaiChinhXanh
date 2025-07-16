@@ -227,13 +227,13 @@ class AppTheme {
       ),
     ),
     
-    cardTheme: CardTheme(
+    cardTheme: const CardThemeData(
       elevation: 0,
       color: vcbWhite,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: vcbGrey.withOpacity(0.1)),
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+        side: BorderSide(color: vcbGrey, width: 0.1),
       ),
     ),
     
@@ -331,13 +331,13 @@ class AppTheme {
       ),
     ),
     
-    cardTheme: CardTheme(
+    cardTheme: const CardThemeData(
       elevation: 0,
-      color: const Color(0xFF1E1E1E),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Color(0xFF1E1E1E),
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: vcbWhite.withOpacity(0.1)),
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+        side: BorderSide(color: vcbWhite, width: 0.1),
       ),
     ),
     
@@ -456,6 +456,71 @@ class AppTheme {
   static TextStyle get labelLarge => _textTheme.labelLarge!;
   static TextStyle get labelMedium => _textTheme.labelMedium!;
   static TextStyle get labelSmall => _textTheme.labelSmall!;
+
+  // Icon sizes
+  static const double iconMD = 24.0;
+  static const double iconLG = 32.0;
+  static const double iconXL = 40.0;
+  static const double icon2XL = 48.0;
+  static const double icon3XL = 56.0;
+
+  // Gray colors
+  static const Color gray50 = Color(0xFFF9FAFB);
+  static const Color gray100 = Color(0xFFF3F4F6);
+  static const Color gray200 = Color(0xFFE5E7EB);
+  static const Color gray300 = Color(0xFFD1D5DB);
+  static const Color gray400 = Color(0xFF9CA3AF);
+  static const Color gray500 = Color(0xFF6B7280);
+  static const Color gray600 = Color(0xFF4B5563);
+  static const Color gray800 = Color(0xFF1F2937);
+
+  // Gradients
+  static const LinearGradient successGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [vcbSuccess, vcbGreen],
+  );
+  static const LinearGradient errorGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [vcbError, Color(0xFFB71C1C)],
+  );
+  static const LinearGradient accentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [accentStart, accentEnd],
+  );
+  static const LinearGradient warningGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [vcbWarning, Color(0xFFFDE68A)],
+  );
+
+  // Gradient start colors
+  static const Color successStart = vcbSuccess;
+  static const Color errorStart = vcbError;
+  static const Color warningStart = vcbWarning;
+  static const Color accentStart = vcbLightGreen;
+
+  // Shadows
+  static List<BoxShadow> lightShadow = [
+    BoxShadow(
+      color: vcbBlack.withOpacity(0.04),
+      blurRadius: 8,
+      offset: const Offset(0, 2),
+    ),
+  ];
+  static List<BoxShadow> glowShadow = [
+    BoxShadow(
+      color: vcbGreen.withOpacity(0.2),
+      blurRadius: 24,
+      spreadRadius: 2,
+      offset: const Offset(0, 0),
+    ),
+  ];
+
+  // Spacing
+  static const double spacing20 = 80.0;
 }
 
 // Extension for easy color access
