@@ -5,6 +5,7 @@
 -keep class io.flutter.view.**  { *; }
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
+-keep class io.flutter.embedding.** { *; }
 
 # Keep native methods
 -keepclasseswithmembernames class * {
@@ -13,8 +14,6 @@
 
 # Keep annotations
 -keepattributes *Annotation*
-
-# Keep generic information
 -keepattributes Signature
 -keepattributes InnerClasses
 -keepattributes EnclosingMethod
@@ -38,23 +37,40 @@
   @com.google.gson.annotations.SerializedName <fields>;
 }
 
-# Google Play Core
+# Google Play Core - Comprehensive rules
+-dontwarn com.google.android.play.core.**
+-keeppackagenames com.google.android.play.core.**
+-keep class com.google.android.play.core.** { *; }
+-keep interface com.google.android.play.core.** { *; }
+
+# Specific Google Play Core classes
 -keep class com.google.android.play.core.splitcompat.** { *; }
 -keep class com.google.android.play.core.splitinstall.** { *; }
 -keep class com.google.android.play.core.tasks.** { *; }
+-keep class com.google.android.play.core.common.** { *; }
+-keep class com.google.android.play.core.listener.** { *; }
 
-# Specifically keep the missing classes
--keep class com.google.android.play.core.splitcompat.SplitCompatApplication { *; }
--keep class com.google.android.play.core.splitinstall.SplitInstallException { *; }
--keep class com.google.android.play.core.splitinstall.SplitInstallManager { *; }
--keep class com.google.android.play.core.splitinstall.SplitInstallManagerFactory { *; }
--keep class com.google.android.play.core.splitinstall.SplitInstallRequest { *; }
--keep class com.google.android.play.core.splitinstall.SplitInstallRequest$Builder { *; }
--keep class com.google.android.play.core.splitinstall.SplitInstallSessionState { *; }
--keep class com.google.android.play.core.splitinstall.SplitInstallStateUpdatedListener { *; }
--keep class com.google.android.play.core.tasks.OnFailureListener { *; }
--keep class com.google.android.play.core.tasks.OnSuccessListener { *; }
--keep class com.google.android.play.core.tasks.Task { *; }
+# Keep all Play Core model classes
+-keep class com.google.android.play.core.splitinstall.model.** { *; }
+-keep class com.google.android.play.core.appupdate.** { *; }
+-keep class com.google.android.play.core.install.** { *; }
 
-# Flutter embedding
--keep class io.flutter.embedding.** { *; }
+# Flutter deferred components
+-keep class io.flutter.embedding.engine.deferredcomponents.** { *; }
+-keep class io.flutter.FlutterInjector { *; }
+-keep class io.flutter.embedding.engine.FlutterJNI { *; }
+
+# Additional rules for R8
+-ignorewarnings
+-keep class * extends android.app.Activity
+-keep class * extends android.app.Application
+-keep class * extends android.app.Service
+-keep class * extends android.content.BroadcastReceiver
+-keep class * extends android.content.ContentProvider
+
+# Keep BuildConfig
+-keep class **.BuildConfig { *; }
+
+# Shared Preferences
+-keep class androidx.datastore.** { *; }
+-keep class * extends androidx.datastore.preferences.protobuf.GeneratedMessageLite { *; }
