@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'dashboard_screen.dart';
@@ -36,32 +36,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     NavigationItem(
       icon: Icons.home_outlined,
       activeIcon: Icons.home_rounded,
-      label: 'Tá»•ng quan',
-      gradient: AppTheme.primaryGradient,
+      label: 'Tổng quan',
+      color: AppTheme.vcbGreen,
     ),
     NavigationItem(
       icon: Icons.receipt_long_outlined,
       activeIcon: Icons.receipt_long_rounded,
-      label: 'Giao dá»‹ch',
-      gradient: AppTheme.accentGradient,
+      label: 'Giao dịch',
+      color: AppTheme.vcbGreen,
     ),
     NavigationItem(
       icon: Icons.account_balance_wallet_outlined,
       activeIcon: Icons.account_balance_wallet_rounded,
-      label: 'NgÃ¢n sÃ¡ch',
-      gradient: AppTheme.successGradient,
+      label: 'Ngân sách',
+      color: AppTheme.vcbGreen,
     ),
     NavigationItem(
-      icon: Icons.analytics_outlined,
-      activeIcon: Icons.analytics_rounded,
-      label: 'PhÃ¢n tÃ­ch',
-      gradient: AppTheme.warningGradient,
+      icon: Icons.insights_outlined,
+      activeIcon: Icons.insights_rounded,
+      label: 'Phân tích',
+      color: AppTheme.vcbGreen,
     ),
     NavigationItem(
       icon: Icons.settings_outlined,
       activeIcon: Icons.settings_rounded,
-      label: 'CÃ i Ä‘áº·t',
-      gradient: AppTheme.secondaryGradient,
+      label: 'Cài đặt',
+      color: AppTheme.vcbGreen,
     ),
   ];
 
@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Scaffold(
       extendBody: true,
       body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+        decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
         child: SafeArea(
           bottom: false, // Allow bottom navigation to extend
           child: PageView(
@@ -147,40 +147,41 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
 
       // Beautiful Floating Action Button with responsive sizing
-      floatingActionButton: AnimatedBuilder(
-        animation: _fabController,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _fabScaleAnimation.value,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: AppTheme.primaryGradient,
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                boxShadow: AppTheme.glowShadow,
+      floatingActionButton: ScaleTransition(
+        scale: _fabScaleAnimation,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.vcbGreen,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.vcbGreen.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
-              child: FloatingActionButton.extended(
-                onPressed: () {
-                  // TODO: Open quick add transaction dialog
-                  _showQuickAddDialog(context);
-                },
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                icon: const Icon(
-                  Icons.add_rounded,
-                  color: AppTheme.white,
-                  size: AppTheme.iconLG,
-                ),
-                label: Text(
-                  'ThÃªm',
-                  style: AppTheme.labelLarge.copyWith(
-                    color: AppTheme.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+            ],
+          ),
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              // TODO: Open quick add transaction dialog
+              _showQuickAddDialog(context);
+            },
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            icon: const Icon(
+              Icons.add_rounded,
+              color: AppTheme.white,
+              size: AppTheme.iconLG,
+            ),
+            label: Text(
+              'Thêm',
+              style: AppTheme.labelLarge.copyWith(
+                color: AppTheme.white,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
@@ -245,45 +246,46 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       onTap: () => _onTabTapped(index),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: AppTheme.normalDuration,
-        curve: AppTheme.smoothCurve,
-        padding: EdgeInsets.symmetric(
-          horizontal: AppTheme.spacing3,
-          vertical: AppTheme.spacing2,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOutCubic,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 8,
         ),
         decoration: BoxDecoration(
-          gradient: isActive ? item.gradient : null,
-          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-          boxShadow: isActive ? AppTheme.lightShadow : null,
+          color: isActive ? item.color : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedSwitcher(
-              duration: AppTheme.quickDuration,
+              duration: const Duration(milliseconds: 200),
               child: Icon(
                 isActive ? item.activeIcon : item.icon,
                 key: ValueKey(isActive),
                 color: isActive
-                    ? AppTheme.white
+                    ? AppTheme.vcbWhite
                     : Theme.of(context).brightness == Brightness.dark
-                    ? AppTheme.gray400
-                    : AppTheme.gray600,
-                size: AppTheme.iconMD,
+                        ? AppTheme.vcbGrey
+                        : AppTheme.vcbGrey,
+                size: 24,
               ),
             ),
-            SizedBox(height: AppTheme.spacing1),
+            const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
-              duration: AppTheme.quickDuration,
-              style: AppTheme.labelSmall.copyWith(
-                color: isActive
-                    ? AppTheme.white
-                    : Theme.of(context).brightness == Brightness.dark
-                    ? AppTheme.gray400
-                    : AppTheme.gray600,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOutCubic,
+              style: TextStyle(
+                fontSize: isActive ? 12 : 11,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                color: isActive
+                    ? AppTheme.vcbWhite
+                    : Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.vcbGrey
+                        : AppTheme.vcbGrey,
               ),
-              child: Text(item.label, textAlign: TextAlign.center),
+              child: Text(item.label),
             ),
           ],
         ),
@@ -321,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             Padding(
               padding: EdgeInsets.all(AppTheme.spacing6),
               child: Text(
-                'ThÃªm giao dá»‹ch nhanh',
+                'Thêm giao dịch nhanh',
                 style: AppTheme.headlineMedium,
               ),
             ),
@@ -336,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 mainAxisSpacing: AppTheme.spacing4,
                 children: [
                   _buildQuickActionCard(
-                    'Thu nháº­p',
+                    'Thu nhập',
                     Icons.trending_up_rounded,
                     AppTheme.successGradient,
                     () {
@@ -345,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     },
                   ),
                   _buildQuickActionCard(
-                    'Chi tiÃªu',
+                    'Chi tiêu',
                     Icons.trending_down_rounded,
                     AppTheme.errorGradient,
                     () {
@@ -354,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     },
                   ),
                   _buildQuickActionCard(
-                    'Chuyá»ƒn khoáº£n',
+                    'Chuyển khoản',
                     Icons.swap_horiz_rounded,
                     AppTheme.accentGradient,
                     () {
@@ -363,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     },
                   ),
                   _buildQuickActionCard(
-                    'Tiáº¿t kiá»‡m',
+                    'Tiết kiệm',
                     Icons.savings_rounded,
                     AppTheme.warningGradient,
                     () {
@@ -417,12 +419,12 @@ class NavigationItem {
   final IconData icon;
   final IconData activeIcon;
   final String label;
-  final LinearGradient gradient;
+  final Color color;
 
   NavigationItem({
     required this.icon,
     required this.activeIcon,
     required this.label,
-    required this.gradient,
+    required this.color,
   });
 }

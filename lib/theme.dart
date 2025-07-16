@@ -2,500 +2,355 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // ==================== MODERN COLOR PALETTE ====================
+  // Vietcombank brand colors
+  static const Color vcbGreen = Color(0xFF008B3A);
+  static const Color vcbDarkGreen = Color(0xFF006B2C);
+  static const Color vcbLightGreen = Color(0xFF00A344);
+  static const Color vcbGreenAccent = Color(0xFF66C266);
+  
+  // Supporting colors
+  static const Color vcbGrey = Color(0xFF5A5A5A);
+  static const Color vcbLightGrey = Color(0xFFF5F5F5);
+  static const Color vcbWhite = Color(0xFFFFFFFF);
+  static const Color vcbBlack = Color(0xFF1A1A1A);
+  
+  // Semantic colors
+  static const Color vcbSuccess = Color(0xFF00A344);
+  static const Color vcbWarning = Color(0xFFF39C12);
+  static const Color vcbError = Color(0xFFE74C3C);
+  static const Color vcbInfo = Color(0xFF3498DB);
 
-  // Primary Brand Colors - Beautiful Blue Gradient
-  static const Color primaryStart = Color(0xFF667eea);
-  static const Color primaryEnd = Color(0xFF764ba2);
-  static const Color primaryColor = Color(0xFF6366f1);
-  static const Color primaryLight = Color(0xFF8b87ff);
-  static const Color primaryDark = Color(0xFF4338ca);
-
-  // Secondary Colors - Purple & Pink Gradients
-  static const Color secondaryStart = Color(0xFFf093fb);
-  static const Color secondaryEnd = Color(0xFFf5576c);
-  static const Color accentStart = Color(0xFF4facfe);
-  static const Color accentEnd = Color(0xFF00f2fe);
-
-  // Status Colors with Gradients
-  static const Color successStart = Color(0xFF56ab2f);
-  static const Color successEnd = Color(0xFFa8e6cf);
-  static const Color warningStart = Color(0xFFf7971e);
-  static const Color warningEnd = Color(0xFFffd200);
-  static const Color errorStart = Color(0xFFff6b6b);
-  static const Color errorEnd = Color(0xFFff8e8e);
-  static const Color infoStart = Color(0xFF74b9ff);
-  static const Color infoEnd = Color(0xFF0984e3);
-
-  // Neutral Colors - Modern Gray Scale
-  static const Color white = Color(0xFFffffff);
-  static const Color gray50 = Color(0xFFf8fafc);
-  static const Color gray100 = Color(0xFFf1f5f9);
-  static const Color gray200 = Color(0xFFe2e8f0);
-  static const Color gray300 = Color(0xFFcbd5e1);
-  static const Color gray400 = Color(0xFF94a3b8);
-  static const Color gray500 = Color(0xFF64748b);
-  static const Color gray600 = Color(0xFF475569);
-  static const Color gray700 = Color(0xFF334155);
-  static const Color gray800 = Color(0xFF1e293b);
-  static const Color gray900 = Color(0xFF0f172a);
-
-  // Glass Morphism Colors
-  static const Color glassWhite = Color(0x1AFFFFFF);
-  static const Color glassDark = Color(0x1A000000);
-  static const Color glassBlur = Color(0x33FFFFFF);
-
-  // ==================== GRADIENTS ====================
-
-  static const LinearGradient primaryGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [primaryStart, primaryEnd],
-  );
-
-  static const LinearGradient secondaryGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [secondaryStart, secondaryEnd],
-  );
-
-  static const LinearGradient accentGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [accentStart, accentEnd],
-  );
-
-  static const LinearGradient successGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [successStart, successEnd],
-  );
-
-  static const LinearGradient warningGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [warningStart, warningEnd],
-  );
-
-  static const LinearGradient errorGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [errorStart, errorEnd],
-  );
-
-  static const LinearGradient backgroundGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFFf8fafc), Color(0xFFe2e8f0)],
-  );
-
-  static const LinearGradient darkBackgroundGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFF1e293b), Color(0xFF0f172a)],
-  );
-
-  // ==================== SHADOWS ====================
-
-  static List<BoxShadow> lightShadow = [
-    BoxShadow(
-      color: gray900.withValues(alpha: 0.05),
-      blurRadius: 8,
-      offset: const Offset(0, 2),
+  // Text styles with Roboto font (VCB style)
+  static TextTheme _textTheme = TextTheme(
+    displayLarge: GoogleFonts.roboto(
+      fontSize: 32,
+      fontWeight: FontWeight.bold,
+      color: vcbBlack,
+      letterSpacing: -0.5,
     ),
-  ];
-
-  static List<BoxShadow> mediumShadow = [
-    BoxShadow(
-      color: gray900.withValues(alpha: 0.1),
-      blurRadius: 16,
-      offset: const Offset(0, 4),
+    displayMedium: GoogleFonts.roboto(
+      fontSize: 28,
+      fontWeight: FontWeight.bold,
+      color: vcbBlack,
+      letterSpacing: -0.5,
     ),
-  ];
-
-  static List<BoxShadow> heavyShadow = [
-    BoxShadow(
-      color: gray900.withValues(alpha: 0.15),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
+    displaySmall: GoogleFonts.roboto(
+      fontSize: 24,
+      fontWeight: FontWeight.w600,
+      color: vcbBlack,
     ),
-  ];
-
-  static List<BoxShadow> glowShadow = [
-    BoxShadow(
-      color: primaryColor.withValues(alpha: 0.3),
-      blurRadius: 20,
-      offset: const Offset(0, 10),
+    headlineLarge: GoogleFonts.roboto(
+      fontSize: 22,
+      fontWeight: FontWeight.w600,
+      color: vcbBlack,
     ),
-  ];
-
-  // ==================== SPACING ====================
-
-  static const double spacing1 = 4.0;
-  static const double spacing2 = 8.0;
-  static const double spacing3 = 12.0;
-  static const double spacing4 = 16.0;
-  static const double spacing5 = 20.0;
-  static const double spacing6 = 24.0;
-  static const double spacing8 = 32.0;
-  static const double spacing10 = 40.0;
-  static const double spacing12 = 48.0;
-  static const double spacing16 = 64.0;
-  static const double spacing20 = 80.0;
-
-  // ==================== BORDER RADIUS ====================
-
-  static const double radiusXS = 4.0;
-  static const double radiusSM = 8.0;
-  static const double radiusMD = 12.0;
-  static const double radiusLG = 16.0;
-  static const double radiusXL = 20.0;
-  static const double radius2XL = 24.0;
-  static const double radiusFull = 999.0;
-
-  // Alias properties for backward compatibility
-  static const double radiusSmall = radiusSM;
-  static const double radiusMedium = radiusMD;
-  static const double radiusLarge = radiusLG;
-  static const double radiusXLarge = radiusXL;
-
-  // ==================== ICON SIZES ====================
-
-  static const double iconXS = 12.0;
-  static const double iconSM = 16.0;
-  static const double iconMD = 20.0;
-  static const double iconLG = 24.0;
-  static const double iconXL = 32.0;
-  static const double icon2XL = 40.0;
-  static const double icon3XL = 48.0;
-
-  // Alias properties for backward compatibility
-  static const double iconSmall = iconSM;
-  static const double iconMedium = iconMD;
-  static const double iconLarge = iconLG;
-
-  // ==================== STATUS COLORS ====================
-
-  // Direct color access for backward compatibility
-  static const Color errorColor = errorStart;
-  static const Color warningColor = warningStart;
-  static const Color successColor = successStart;
-  static const Color infoColor = infoStart;
-
-  // Finance specific colors
-  static const Color incomeColor = successStart;
-  static const Color expenseColor = errorStart;
-  static const Color savingsColor = Color(0xFF10b981);
-  static const Color investmentColor = Color(0xFF8b5cf6);
-
-  // UI colors
-  static const Color surfaceColor = white;
-  static const Color secondaryColor = Color(0xFFf093fb);
-  static const Color textPrimary = gray900;
-  static const Color textSecondary = gray700;
-  static const Color textMuted = gray500;
-
-  // Additional missing colors
-  static const Color backgroundColor = gray50;
-  static const Color primarySurface = white;
-  static const Color accentOrange = Color(0xFFff8500);
-
-  // Currency text sizes
-  static const double currencySmall = 12.0;
-  static const double currencyMedium = 16.0;
-  static const double currencyLarge = 20.0;
-
-  // Shadow shortcuts
-  static List<BoxShadow> get softShadow => lightShadow;
-
-  // ==================== ADDITIONAL GRADIENTS ====================
-
-  static const LinearGradient incomeGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF56ab2f), Color(0xFFa8e6cf)],
+    headlineMedium: GoogleFonts.roboto(
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+      color: vcbBlack,
+    ),
+    headlineSmall: GoogleFonts.roboto(
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      color: vcbBlack,
+    ),
+    titleLarge: GoogleFonts.roboto(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      color: vcbBlack,
+    ),
+    titleMedium: GoogleFonts.roboto(
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      color: vcbBlack,
+    ),
+    titleSmall: GoogleFonts.roboto(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      color: vcbBlack,
+    ),
+    bodyLarge: GoogleFonts.roboto(
+      fontSize: 16,
+      fontWeight: FontWeight.normal,
+      color: vcbGrey,
+    ),
+    bodyMedium: GoogleFonts.roboto(
+      fontSize: 14,
+      fontWeight: FontWeight.normal,
+      color: vcbGrey,
+    ),
+    bodySmall: GoogleFonts.roboto(
+      fontSize: 12,
+      fontWeight: FontWeight.normal,
+      color: vcbGrey,
+    ),
+    labelLarge: GoogleFonts.roboto(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      color: vcbBlack,
+      letterSpacing: 0.5,
+    ),
+    labelMedium: GoogleFonts.roboto(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      color: vcbBlack,
+      letterSpacing: 0.5,
+    ),
+    labelSmall: GoogleFonts.roboto(
+      fontSize: 10,
+      fontWeight: FontWeight.w500,
+      color: vcbGrey,
+      letterSpacing: 0.5,
+    ),
   );
 
-  static const LinearGradient expenseGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFFff6b6b), Color(0xFFff8e8e)],
-  );
-
-  static const LinearGradient savingsGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF10b981), Color(0xFF34d399)],
-  );
-
-  // Card gradient
-  static const LinearGradient cardGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [white, gray50],
-  );
-
-  // ==================== DECORATIONS ====================
-
-  // White card decoration
-  static BoxDecoration get whiteCardDecoration => BoxDecoration(
-    color: white,
-    borderRadius: BorderRadius.circular(radiusLG),
-    boxShadow: lightShadow,
-  );
-
-  // ==================== TYPOGRAPHY ====================
-
-  static TextStyle get displayLarge => GoogleFonts.inter(
-    fontSize: 48,
-    fontWeight: FontWeight.w800,
-    height: 1.1,
-    letterSpacing: -0.02,
-  );
-
-  static TextStyle get displayMedium => GoogleFonts.inter(
-    fontSize: 36,
-    fontWeight: FontWeight.w700,
-    height: 1.2,
-    letterSpacing: -0.01,
-  );
-
-  static TextStyle get displaySmall =>
-      GoogleFonts.inter(fontSize: 30, fontWeight: FontWeight.w600, height: 1.2);
-
-  static TextStyle get headlineLarge =>
-      GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w600, height: 1.3);
-
-  static TextStyle get headlineMedium =>
-      GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, height: 1.3);
-
-  static TextStyle get headlineSmall =>
-      GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w500, height: 1.4);
-
-  static TextStyle get titleLarge =>
-      GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, height: 1.4);
-
-  static TextStyle get titleMedium =>
-      GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, height: 1.4);
-
-  static TextStyle get titleSmall =>
-      GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, height: 1.4);
-
-  static TextStyle get bodyLarge =>
-      GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5);
-
-  static TextStyle get bodyMedium =>
-      GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400, height: 1.5);
-
-  static TextStyle get bodySmall =>
-      GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w400, height: 1.4);
-
-  static TextStyle get labelLarge =>
-      GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, height: 1.4);
-
-  static TextStyle get labelMedium =>
-      GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, height: 1.4);
-
-  static TextStyle get labelSmall =>
-      GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, height: 1.4);
-
-  // ==================== THEME DATA ====================
-
-  static ThemeData get lightTheme => ThemeData(
+  static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
+    primaryColor: vcbGreen,
+    scaffoldBackgroundColor: vcbLightGrey,
+    
     colorScheme: const ColorScheme.light(
-      primary: primaryColor,
-      secondary: Color(0xFFf093fb),
-      surface: white,
-      surfaceContainerHighest: gray50, // Replacing background
-      error: errorStart,
-      onPrimary: white,
-      onSecondary: white,
-      onSurface: gray900,
-      onSurfaceVariant: gray900, // Replacing onBackground
-      onError: white,
+      primary: vcbGreen,
+      primaryContainer: vcbLightGreen,
+      secondary: vcbDarkGreen,
+      secondaryContainer: vcbGreenAccent,
+      surface: vcbWhite,
+      background: vcbLightGrey,
+      error: vcbError,
+      onPrimary: vcbWhite,
+      onSecondary: vcbWhite,
+      onSurface: vcbBlack,
+      onBackground: vcbBlack,
+      onError: vcbWhite,
     ),
-    textTheme: TextTheme(
-      displayLarge: displayLarge.copyWith(color: gray900),
-      displayMedium: displayMedium.copyWith(color: gray900),
-      displaySmall: displaySmall.copyWith(color: gray900),
-      headlineLarge: headlineLarge.copyWith(color: gray900),
-      headlineMedium: headlineMedium.copyWith(color: gray900),
-      headlineSmall: headlineSmall.copyWith(color: gray900),
-      titleLarge: titleLarge.copyWith(color: gray900),
-      titleMedium: titleMedium.copyWith(color: gray700),
-      titleSmall: titleSmall.copyWith(color: gray600),
-      bodyLarge: bodyLarge.copyWith(color: gray800),
-      bodyMedium: bodyMedium.copyWith(color: gray700),
-      bodySmall: bodySmall.copyWith(color: gray600),
-      labelLarge: labelLarge.copyWith(color: gray700),
-      labelMedium: labelMedium.copyWith(color: gray600),
-      labelSmall: labelSmall.copyWith(color: gray500),
-    ),
+    
+    textTheme: _textTheme,
+    
     appBarTheme: AppBarTheme(
-      backgroundColor: Colors.transparent,
+      backgroundColor: vcbWhite,
+      foregroundColor: vcbBlack,
       elevation: 0,
-      scrolledUnderElevation: 0,
-      titleTextStyle: headlineMedium.copyWith(color: white),
-      iconTheme: const IconThemeData(color: white),
+      centerTitle: false,
+      titleTextStyle: GoogleFonts.roboto(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: vcbBlack,
+      ),
+      iconTheme: const IconThemeData(color: vcbBlack),
     ),
+    
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: primaryColor,
-        foregroundColor: white,
+        backgroundColor: vcbGreen,
+        foregroundColor: vcbWhite,
         elevation: 0,
-        shadowColor: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusLG),
+          borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: spacing6,
-          vertical: spacing4,
+        textStyle: GoogleFonts.roboto(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
         ),
       ),
     ),
-    cardTheme: CardThemeData(
+    
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: vcbGreen,
+        side: const BorderSide(color: vcbGreen, width: 1.5),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        textStyle: GoogleFonts.roboto(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+    
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: vcbGreen,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        textStyle: GoogleFonts.roboto(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+    
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: vcbWhite,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: vcbGreen, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: vcbError),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: vcbError, width: 2),
+      ),
+      labelStyle: GoogleFonts.roboto(
+        fontSize: 14,
+        color: vcbGrey,
+      ),
+      hintStyle: GoogleFonts.roboto(
+        fontSize: 14,
+        color: vcbGrey.withOpacity(0.6),
+      ),
+    ),
+    
+    cardTheme: CardTheme(
       elevation: 0,
+      color: vcbWhite,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(radiusXL),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: vcbGrey.withOpacity(0.1)),
       ),
-      margin: EdgeInsets.zero,
     ),
+    
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: vcbWhite,
+      selectedItemColor: vcbGreen,
+      unselectedItemColor: vcbGrey,
+      selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      unselectedLabelStyle: TextStyle(fontSize: 12),
+      showUnselectedLabels: true,
+      type: BottomNavigationBarType.fixed,
+      elevation: 8,
+    ),
+    
     dividerTheme: DividerThemeData(
-      color: gray200,
+      color: vcbGrey.withOpacity(0.1),
       thickness: 1,
-      space: spacing2,
+      space: 1,
+    ),
+    
+    iconTheme: const IconThemeData(
+      color: vcbGrey,
+      size: 24,
+    ),
+    
+    chipTheme: ChipThemeData(
+      backgroundColor: vcbLightGrey,
+      selectedColor: vcbGreen.withOpacity(0.1),
+      disabledColor: vcbGrey.withOpacity(0.1),
+      labelStyle: GoogleFonts.roboto(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: vcbBlack,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: vcbGrey.withOpacity(0.2)),
+      ),
     ),
   );
 
-  static ThemeData get darkTheme => ThemeData(
+  static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    colorScheme: const ColorScheme.dark(
-      primary: primaryColor,
-      secondary: Color(0xFFf093fb),
-      surface: gray800,
-      surfaceContainerHighest: gray900, // Replacing background
-      error: errorStart,
-      onPrimary: white,
-      onSecondary: white,
-      onSurface: white,
-      onSurfaceVariant: white, // Replacing onBackground
-      onError: white,
+    primaryColor: vcbGreen,
+    scaffoldBackgroundColor: const Color(0xFF121212),
+    
+    colorScheme: ColorScheme.dark(
+      primary: vcbGreen,
+      primaryContainer: vcbDarkGreen,
+      secondary: vcbLightGreen,
+      secondaryContainer: vcbGreenAccent,
+      surface: const Color(0xFF1E1E1E),
+      background: const Color(0xFF121212),
+      error: vcbError,
+      onPrimary: vcbWhite,
+      onSecondary: vcbBlack,
+      onSurface: vcbWhite,
+      onBackground: vcbWhite,
+      onError: vcbWhite,
     ),
-    textTheme: TextTheme(
-      displayLarge: displayLarge.copyWith(color: white),
-      displayMedium: displayMedium.copyWith(color: white),
-      displaySmall: displaySmall.copyWith(color: white),
-      headlineLarge: headlineLarge.copyWith(color: white),
-      headlineMedium: headlineMedium.copyWith(color: white),
-      headlineSmall: headlineSmall.copyWith(color: white),
-      titleLarge: titleLarge.copyWith(color: white),
-      titleMedium: titleMedium.copyWith(color: gray300),
-      titleSmall: titleSmall.copyWith(color: gray400),
-      bodyLarge: bodyLarge.copyWith(color: gray200),
-      bodyMedium: bodyMedium.copyWith(color: gray300),
-      bodySmall: bodySmall.copyWith(color: gray400),
-      labelLarge: labelLarge.copyWith(color: gray300),
-      labelMedium: labelMedium.copyWith(color: gray400),
-      labelSmall: labelSmall.copyWith(color: gray500),
+    
+    textTheme: _textTheme.apply(
+      bodyColor: vcbWhite,
+      displayColor: vcbWhite,
     ),
+    
     appBarTheme: AppBarTheme(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFF1E1E1E),
+      foregroundColor: vcbWhite,
       elevation: 0,
-      scrolledUnderElevation: 0,
-      titleTextStyle: headlineMedium.copyWith(color: white),
-      iconTheme: const IconThemeData(color: white),
+      centerTitle: false,
+      titleTextStyle: GoogleFonts.roboto(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: vcbWhite,
+      ),
+      iconTheme: const IconThemeData(color: vcbWhite),
     ),
+    
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: primaryColor,
-        foregroundColor: white,
+        backgroundColor: vcbGreen,
+        foregroundColor: vcbWhite,
         elevation: 0,
-        shadowColor: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusLG),
+          borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: spacing6,
-          vertical: spacing4,
+        textStyle: GoogleFonts.roboto(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
         ),
       ),
     ),
-    cardTheme: CardThemeData(
-      color: gray800,
+    
+    cardTheme: CardTheme(
       elevation: 0,
+      color: const Color(0xFF1E1E1E),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(radiusXL),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: vcbWhite.withOpacity(0.1)),
       ),
-      margin: EdgeInsets.zero,
     ),
-    dividerTheme: DividerThemeData(
-      color: gray700,
-      thickness: 1,
-      space: spacing2,
+    
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Color(0xFF1E1E1E),
+      selectedItemColor: vcbGreen,
+      unselectedItemColor: vcbGrey,
+      selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      unselectedLabelStyle: TextStyle(fontSize: 12),
+      showUnselectedLabels: true,
+      type: BottomNavigationBarType.fixed,
+      elevation: 8,
     ),
   );
+}
 
-  // ==================== UTILITY METHODS ====================
-
-  static bool isMobile(BuildContext context) =>
-      MediaQuery.of(context).size.width < 768;
-
-  static bool isTablet(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return width >= 768 && width < 1024;
-  }
-
-  static bool isDesktop(BuildContext context) =>
-      MediaQuery.of(context).size.width >= 1024;
-
-  static double getResponsivePadding(BuildContext context) {
-    if (isMobile(context)) return spacing4;
-    if (isTablet(context)) return spacing6;
-    return spacing8;
-  }
-
-  static double getResponsiveRadius(BuildContext context) {
-    if (isMobile(context)) return radiusMD;
-    if (isTablet(context)) return radiusLG;
-    return radiusXL;
-  }
-
-  // ==================== GLASS MORPHISM HELPER ====================
-
-  static BoxDecoration glassMorphism({
-    Color? color,
-    double borderRadius = radiusXL,
-    bool hasBorder = true,
-  }) {
-    return BoxDecoration(
-      color: color ?? glassWhite,
-      borderRadius: BorderRadius.circular(borderRadius),
-      border: hasBorder
-          ? Border.all(color: white.withValues(alpha: 0.2), width: 1)
-          : null,
-      boxShadow: [
-        BoxShadow(
-          color: gray900.withValues(alpha: 0.1),
-          blurRadius: 20,
-          offset: const Offset(0, 8),
-        ),
-      ],
-    );
-  }
-
-  // ==================== ANIMATION CURVES ====================
-
-  static const Curve bounceInCurve = Curves.elasticOut;
-  static const Curve smoothCurve = Curves.easeInOutCubic;
-  static const Curve quickCurve = Curves.easeOutQuart;
-
-  // ==================== ANIMATION DURATIONS ====================
-
-  static const Duration quickDuration = Duration(milliseconds: 200);
-  static const Duration normalDuration = Duration(milliseconds: 300);
-  static const Duration slowDuration = Duration(milliseconds: 500);
-  static const Duration extraSlowDuration = Duration(milliseconds: 800);
+// Extension for easy color access
+extension ThemeColors on BuildContext {
+  Color get primaryColor => Theme.of(this).primaryColor;
+  Color get vcbGreen => AppTheme.vcbGreen;
+  Color get vcbDarkGreen => AppTheme.vcbDarkGreen;
+  Color get vcbLightGreen => AppTheme.vcbLightGreen;
+  Color get vcbSuccess => AppTheme.vcbSuccess;
+  Color get vcbWarning => AppTheme.vcbWarning;
+  Color get vcbError => AppTheme.vcbError;
+  Color get vcbInfo => AppTheme.vcbInfo;
 }
