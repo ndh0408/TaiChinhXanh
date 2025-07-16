@@ -31,6 +31,32 @@ class AppTheme {
   static const Color accentStart = vcbLightGreen;
   static const Color accentEnd = vcbGreenAccent;
 
+  // Gray color palette
+  static const Color gray50 = Color(0xFFFAFAFA);
+  static const Color gray100 = Color(0xFFF5F5F5);
+  static const Color gray200 = Color(0xFFEEEEEE);
+  static const Color gray300 = Color(0xFFE0E0E0);
+  static const Color gray400 = Color(0xFFBDBDBD);
+  static const Color gray500 = Color(0xFF9E9E9E);
+  static const Color gray600 = Color(0xFF757575);
+  static const Color gray700 = Color(0xFF616161);
+  static const Color gray800 = Color(0xFF424242);
+  static const Color gray900 = Color(0xFF212121);
+  
+  // Semantic color starts (for gradients)
+  static const Color successStart = vcbSuccess;
+  static const Color errorStart = vcbError;
+  static const Color warningStart = vcbWarning;
+  
+  // Icon sizes
+  static const double iconXS = 16.0;
+  static const double iconSM = 20.0;
+  static const double iconMD = 24.0;
+  static const double iconLG = 28.0;
+  static const double iconXL = 32.0;
+  static const double icon2XL = 36.0;
+  static const double icon3XL = 48.0;
+
   // Text styles with Roboto font (VCB style)
   static TextTheme _textTheme = TextTheme(
     displayLarge: GoogleFonts.roboto(
@@ -377,6 +403,7 @@ class AppTheme {
   static const double spacing9 = 36.0;
   static const double spacing10 = 40.0;
   static const double spacing12 = 48.0;
+  static const double spacing20 = 80.0;
   
   // Border radius
   static const double radiusXS = 4.0;
@@ -406,6 +433,30 @@ class AppTheme {
     colors: [vcbLightGrey, Colors.white],
   );
   
+  static const LinearGradient successGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF00C853), Color(0xFF00A344)],
+  );
+  
+  static const LinearGradient errorGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFF5252), Color(0xFFE74C3C)],
+  );
+  
+  static const LinearGradient accentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [vcbLightGreen, vcbGreenAccent],
+  );
+  
+  static const LinearGradient warningGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFFAB00), Color(0xFFF39C12)],
+  );
+  
   // Shadows
   static List<BoxShadow> cardShadow = [
     BoxShadow(
@@ -420,6 +471,22 @@ class AppTheme {
       color: vcbBlack.withOpacity(0.12),
       blurRadius: 24,
       offset: const Offset(0, 8),
+    ),
+  ];
+  
+  static List<BoxShadow> lightShadow = [
+    BoxShadow(
+      color: vcbBlack.withOpacity(0.05),
+      blurRadius: 8,
+      offset: const Offset(0, 2),
+    ),
+  ];
+  
+  static List<BoxShadow> glowShadow = [
+    BoxShadow(
+      color: vcbGreen.withOpacity(0.3),
+      blurRadius: 16,
+      offset: const Offset(0, 4),
     ),
   ];
   
