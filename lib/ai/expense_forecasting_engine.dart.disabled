@@ -1,0 +1,846 @@
+import 'dart:math' as math;
+import '../models/transaction.dart';
+import '../models/category.dart';
+import '../models/expense_forecast.dart';
+import '../services/transaction_service.dart';
+import '../db/db_init.dart';
+
+class ExpenseForecastingEngine {
+  static const double _anomalyThreshold = 2.0; // Standard deviations
+  static const int _minDataPoints = 10;
+  static const int _defaultForecastDays = 30;
+  static const double _seasonalityWeight = 0.3;
+  static const double _trendWeight = 0.4;
+  static const double _historicalWeight = 0.3;
+
+  /// Generate comprehensive expense forecasts for multiple time periods
+  static Future<List<ExpenseForecast>> generateExpenseForecasts({
+    required List<Transaction> transactions,
+    required List<Category> categories,
+    List<int> forecastDays = const [7, 30, 90],
+    DateTime? startDate,
+  }) async {
+    List<ExpenseForecast> forecasts = [];
+    DateTime baseDate = startDate ?? DateTime.now();
+
+    // Analyze by category
+    Map<String, List<Transaction>> transactionsByCategory =
+        _groupTransactionsByCategory(transactions);
+
+    for (String categoryId in transactionsByCategory.keys) {
+      List<Transaction> categoryTransactions =
+          transactionsByCategory[categoryId]!;
+      Category category = categories.firstWhere((c) => c.id == categoryId);
+
+      if (categoryTransactions.length >= _minDataPoints) {
+        for (int days in forecastDays) {
+          ExpenseForecast forecast = await _generateCategoryForecast(
+            categoryTransactions: categoryTransactions,
+            category: category,
+            forecastDays: days,
+            startDate: baseDate,
+          );
+          forecasts.add(forecast);
+        }
+      }
+    }
+
+    // Generate total expense forecasts
+    for (int days in forecastDays) {
+      ExpenseForecast totalForecast = await _generateTotalExpenseForecast(
+        transactions: transactions,
+        forecastDays: days,
+        startDate: baseDate,
+      );
+      forecasts.add(totalForecast);
+    }
+
+    return forecasts;
+  }
+
+  /// Detect spending anomalies and unusual patterns
+  static Future<List<ExpenseAnomaly>> detectSpendingAnomalies({
+    required List<Transaction> transactions,
+    required List<Category> categories,
+    int analysisMonths = 6,
+  }) async {
+    List<ExpenseAnomaly> anomalies = [];
+    DateTime cutoffDate = DateTime.now().subtract(
+      Duration(days: 30 * analysisMonths),
+    );
+
+    List<Transaction> recentTransactions = transactions
+        .where((t) => t.transactionDate.isAfter(cutoffDate) && t.amount < 0)
+        .toList();
+
+    // Group by category for analysis
+    Map<String, List<Transaction>> transactionsByCategory =
+        _groupTransactionsByCategory(recentTransactions);
+
+    for (String categoryId in transactionsByCategory.keys) {
+      List<Transaction> categoryTransactions =
+          transactionsByCategory[categoryId]!;
+      Category category = categories.firstWhere((c) => c.id == categoryId);
+
+      if (categoryTransactions.length >= _minDataPoints) {
+        List<ExpenseAnomaly> categoryAnomalies = await _detectCategoryAnomalies(
+          categoryTransactions,
+          category,
+        );
+        anomalies.addAll(categoryAnomalies);
+      }
+    }
+
+    // Detect temporal anomalies (day of week, time patterns)
+    List<ExpenseAnomaly> temporalAnomalies = _detectTemporalAnomalies(
+      recentTransactions,
+    );
+    anomalies.addAll(temporalAnomalies);
+
+    // Detect amount-based anomalies
+    List<ExpenseAnomaly> amountAnomalies = _detectAmountAnomalies(
+      recentTransactions,
+    );
+    anomalies.addAll(amountAnomalies);
+
+    // Sort by severity and date
+    anomalies.sort((a, b) {
+      int severityCompare = b.severity.index.compareTo(a.severity.index);
+      if (severityCompare != 0) return severityCompare;
+      return b.detectedAt.compareTo(a.detectedAt);
+    });
+
+    return anomalies;
+  }
+
+  /// Predict spending for specific categories
+  static Future<CategorySpendingPrediction> predictCategorySpending({
+    required List<Transaction> transactions,
+    required String categoryId,
+    required Category category,
+    int forecastDays = 30,
+  }) async {
+    List<Transaction> categoryTransactions = transactions
+        .where((t) => t.categoryId == categoryId && t.amount < 0)
+        .toList();
+
+    if (categoryTransactions.isEmpty) {
+      return CategorySpendingPrediction(
+        categoryId: categoryId,
+        categoryName: category.name,
+        predictedAmount: 0.0,
+        confidence: 0.0,
+        trend: SpendingTrend.stable,
+        historicalAverage: 0.0,
+        recommendations: ['Chưa có dữ liệu chi tiêu cho danh mục này'],
+      );
+    }
+
+    // Calculate historical metrics
+    List<double> dailyAmounts = _getDailySpending(categoryTransactions, 90);
+    double historicalAverage = dailyAmounts.isNotEmpty
+        ? dailyAmounts.reduce((a, b) => a + b) / dailyAmounts.length
+        : 0.0;
+
+    // Apply multiple forecasting methods
+    double linearPrediction = _linearRegressionForecast(
+      dailyAmounts,
+      forecastDays,
+    );
+    double seasonalPrediction = _seasonalForecast(
+      categoryTransactions,
+      forecastDays,
+    );
+    double trendPrediction = _trendBasedForecast(dailyAmounts, forecastDays);
+    double movingAveragePrediction = _movingAverageForecast(
+      dailyAmounts,
+      forecastDays,
+    );
+
+    // Weighted ensemble prediction
+    double predictedAmount =
+        (linearPrediction * 0.3 +
+                seasonalPrediction * 0.25 +
+                trendPrediction * 0.25 +
+                movingAveragePrediction * 0.2)
+            .abs();
+
+    // Calculate confidence based on data consistency
+    double confidence = _calculateForecastConfidence(dailyAmounts);
+
+    // Determine spending trend
+    SpendingTrend trend = _calculateSpendingTrend(dailyAmounts);
+
+    // Generate recommendations
+    List<String> recommendations = _generateSpendingRecommendations(
+      categoryTransactions,
+      category,
+      predictedAmount,
+      historicalAverage,
+      trend,
+    );
+
+    return CategorySpendingPrediction(
+      categoryId: categoryId,
+      categoryName: category.name,
+      predictedAmount: predictedAmount,
+      confidence: confidence,
+      trend: trend,
+      historicalAverage: historicalAverage,
+      recommendations: recommendations,
+    );
+  }
+
+  /// Advanced seasonal analysis
+  static SeasonalAnalysis analyzeSeasonalPatterns({
+    required List<Transaction> transactions,
+    int analysisMonths = 12,
+  }) {
+    DateTime cutoffDate = DateTime.now().subtract(
+      Duration(days: 30 * analysisMonths),
+    );
+    List<Transaction> expenseTransactions = transactions
+        .where((t) => t.transactionDate.isAfter(cutoffDate) && t.amount < 0)
+        .toList();
+
+    // Monthly seasonality
+    Map<int, double> monthlySpending = {};
+    Map<int, double> weeklySpending = {};
+    Map<int, double> dailySpending = {};
+
+    for (Transaction transaction in expenseTransactions) {
+      double amount = transaction.amount.abs();
+      int month = transaction.transactionDate.month;
+      int weekday = transaction.transactionDate.weekday;
+      int day = transaction.transactionDate.day;
+
+      monthlySpending[month] = (monthlySpending[month] ?? 0) + amount;
+      weeklySpending[weekday] = (weeklySpending[weekday] ?? 0) + amount;
+      dailySpending[day] = (dailySpending[day] ?? 0) + amount;
+    }
+
+    // Find peak periods
+    int peakMonth = monthlySpending.entries
+        .reduce((a, b) => a.value > b.value ? a : b)
+        .key;
+    int peakWeekday = weeklySpending.entries
+        .reduce((a, b) => a.value > b.value ? a : b)
+        .key;
+
+    // Calculate seasonality strength
+    double monthlyVariance = _calculateVariance(
+      monthlySpending.values.toList(),
+    );
+    double weeklyVariance = _calculateVariance(weeklySpending.values.toList());
+
+    return SeasonalAnalysis(
+      monthlyPatterns: monthlySpending,
+      weeklyPatterns: weeklySpending,
+      peakMonth: peakMonth,
+      peakWeekday: peakWeekday,
+      seasonalityStrength: (monthlyVariance + weeklyVariance) / 2,
+      insights: _generateSeasonalInsights(monthlySpending, weeklySpending),
+    );
+  }
+
+  /// Budget variance analysis
+  static List<BudgetVarianceAlert> analyzeBudgetVariance({
+    required List<Transaction> transactions,
+    required Map<String, double> budgets, // categoryId -> budgetAmount
+    int analysisDays = 30,
+  }) {
+    List<BudgetVarianceAlert> alerts = [];
+    DateTime cutoffDate = DateTime.now().subtract(Duration(days: analysisDays));
+
+    // Group expenses by category
+    Map<String, double> actualSpending = {};
+
+    for (Transaction transaction in transactions) {
+      if (transaction.transactionDate.isAfter(cutoffDate) &&
+          transaction.amount < 0) {
+        String categoryId = transaction.categoryId.toString();
+        actualSpending[categoryId] =
+            (actualSpending[categoryId] ?? 0) + transaction.amount.abs();
+      }
+    }
+
+    // Compare with budgets
+    for (String categoryId in budgets.keys) {
+      double budgetAmount = budgets[categoryId]!;
+      double actualAmount = actualSpending[categoryId] ?? 0.0;
+      double variance = ((actualAmount - budgetAmount) / budgetAmount) * 100;
+
+      if (variance.abs() > 10) {
+        // 10% threshold
+        BudgetVarianceSeverity severity;
+        if (variance.abs() > 50) {
+          severity = BudgetVarianceSeverity.critical;
+        } else if (variance.abs() > 25) {
+          severity = BudgetVarianceSeverity.high;
+        } else {
+          severity = BudgetVarianceSeverity.medium;
+        }
+
+        alerts.add(
+          BudgetVarianceAlert(
+            categoryId: categoryId,
+            budgetAmount: budgetAmount,
+            actualAmount: actualAmount,
+            variance: variance,
+            severity: severity,
+            message: _generateVarianceMessage(
+              variance,
+              budgetAmount,
+              actualAmount,
+            ),
+            detectedAt: DateTime.now(),
+          ),
+        );
+      }
+    }
+
+    return alerts;
+  }
+
+  // Private helper methods
+  static Map<String, List<Transaction>> _groupTransactionsByCategory(
+    List<Transaction> transactions,
+  ) {
+    Map<String, List<Transaction>> grouped = {};
+
+    for (Transaction transaction in transactions) {
+      if (transaction.amount < 0) {
+        // Only expenses
+        grouped
+            .putIfAbsent(transaction.categoryId.toString(), () => [])
+            .add(transaction);
+      }
+    }
+
+    return grouped;
+  }
+
+  static Future<ExpenseForecast> _generateCategoryForecast({
+    required List<Transaction> categoryTransactions,
+    required Category category,
+    required int forecastDays,
+    required DateTime startDate,
+  }) async {
+    List<double> dailyAmounts = _getDailySpending(categoryTransactions, 90);
+
+    if (dailyAmounts.isEmpty) {
+      return ExpenseForecast(
+        categoryId: category.id!.toString(),
+        categoryName: category.name,
+        forecastAmount: 0.0,
+        forecastPeriod: forecastDays,
+        confidence: 0.0,
+        method: ForecastMethod.historical,
+        generatedAt: DateTime.now(),
+        validUntil: startDate.add(Duration(days: forecastDays)),
+      );
+    }
+
+    // Multiple forecasting approaches
+    double historicalAverage =
+        dailyAmounts.reduce((a, b) => a + b) / dailyAmounts.length;
+    double linearForecast = _linearRegressionForecast(
+      dailyAmounts,
+      forecastDays,
+    );
+    double seasonalForecast = _seasonalForecast(
+      categoryTransactions,
+      forecastDays,
+    );
+    double trendForecast = _trendBasedForecast(dailyAmounts, forecastDays);
+
+    // Weighted ensemble
+    double finalForecast =
+        (historicalAverage * forecastDays * _historicalWeight +
+                linearForecast * _trendWeight +
+                seasonalForecast * _seasonalityWeight)
+            .abs();
+
+    double confidence = _calculateForecastConfidence(dailyAmounts);
+
+    return ExpenseForecast(
+      categoryId: category.id!,
+      categoryName: category.name,
+      forecastAmount: finalForecast,
+      forecastPeriod: forecastDays,
+      confidence: confidence,
+      method: ForecastMethod.ensemble,
+      generatedAt: DateTime.now(),
+      validUntil: startDate.add(Duration(days: forecastDays)),
+    );
+  }
+
+  static Future<ExpenseForecast> _generateTotalExpenseForecast({
+    required List<Transaction> transactions,
+    required int forecastDays,
+    required DateTime startDate,
+  }) async {
+    List<Transaction> expenseTransactions = transactions
+        .where((t) => t.amount < 0)
+        .toList();
+
+    List<double> dailyTotals = _getDailySpending(expenseTransactions, 90);
+
+    if (dailyTotals.isEmpty) {
+      return ExpenseForecast(
+        categoryId: 'total',
+        categoryName: 'Tổng chi tiêu',
+        forecastAmount: 0.0,
+        forecastPeriod: forecastDays,
+        confidence: 0.0,
+        method: ForecastMethod.historical,
+        generatedAt: DateTime.now(),
+        validUntil: startDate.add(Duration(days: forecastDays)),
+      );
+    }
+
+    double averageDaily =
+        dailyTotals.reduce((a, b) => a + b) / dailyTotals.length;
+    double forecastAmount = averageDaily * forecastDays;
+    double confidence = _calculateForecastConfidence(dailyTotals);
+
+    return ExpenseForecast(
+      categoryId: 'total',
+      categoryName: 'Tổng chi tiêu',
+      forecastAmount: forecastAmount.abs(),
+      forecastPeriod: forecastDays,
+      confidence: confidence,
+      method: ForecastMethod.historical,
+      generatedAt: DateTime.now(),
+      validUntil: startDate.add(Duration(days: forecastDays)),
+    );
+  }
+
+  static Future<List<ExpenseAnomaly>> _detectCategoryAnomalies(
+    List<Transaction> categoryTransactions,
+    Category category,
+  ) async {
+    List<ExpenseAnomaly> anomalies = [];
+    List<double> amounts = categoryTransactions
+        .map((t) => t.amount.abs())
+        .toList();
+
+    if (amounts.length < _minDataPoints) return anomalies;
+
+    double mean = amounts.reduce((a, b) => a + b) / amounts.length;
+    double stdDev = _calculateStandardDeviation(amounts, mean);
+
+    for (Transaction transaction in categoryTransactions) {
+      double amount = transaction.amount.abs();
+      double zScore = stdDev > 0 ? (amount - mean) / stdDev : 0;
+
+      if (zScore.abs() > _anomalyThreshold) {
+        AnomalySeverity severity;
+        if (zScore.abs() > 3.5) {
+          severity = AnomalySeverity.critical;
+        } else if (zScore.abs() > 3.0) {
+          severity = AnomalySeverity.high;
+        } else {
+          severity = AnomalySeverity.medium;
+        }
+
+        anomalies.add(
+          ExpenseAnomaly(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            transactionId: transaction.id.toString(),
+            categoryId: transaction.categoryId.toString(),
+            categoryName: category.name,
+            amount: amount,
+            expectedAmount: mean,
+            deviation: zScore,
+            anomalyType: AnomalyType.amountOutlier,
+            severity: severity,
+            description: _generateAnomalyDescription(transaction, mean, zScore),
+            detectedAt: DateTime.now(),
+          ),
+        );
+      }
+    }
+
+    return anomalies;
+  }
+
+  static List<ExpenseAnomaly> _detectTemporalAnomalies(
+    List<Transaction> transactions,
+  ) {
+    List<ExpenseAnomaly> anomalies = [];
+
+    // Analyze time patterns
+    Map<int, List<double>> hourlySpending = {};
+    Map<int, List<double>> dailySpending = {};
+
+    for (Transaction transaction in transactions) {
+      int hour = transaction.transactionDate.hour;
+      int weekday = transaction.transactionDate.weekday;
+      double amount = transaction.amount.abs();
+
+      hourlySpending.putIfAbsent(hour, () => []).add(amount);
+      dailySpending.putIfAbsent(weekday, () => []).add(amount);
+    }
+
+    // Detect unusual time-based spending
+    for (Transaction transaction in transactions) {
+      int hour = transaction.transactionDate.hour;
+      double amount = transaction.amount.abs();
+
+      List<double> typicalAmounts = hourlySpending[hour] ?? [];
+      if (typicalAmounts.length > 3) {
+        double meanForHour =
+            typicalAmounts.reduce((a, b) => a + b) / typicalAmounts.length;
+        double stdDev = _calculateStandardDeviation(
+          typicalAmounts,
+          meanForHour,
+        );
+        double zScore = stdDev > 0 ? (amount - meanForHour) / stdDev : 0;
+
+        if (zScore > 2.5) {
+          anomalies.add(
+            ExpenseAnomaly(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              transactionId: transaction.id.toString(),
+              categoryId: transaction.categoryId.toString(),
+              categoryName: 'Temporal Pattern',
+              amount: amount,
+              expectedAmount: meanForHour,
+              deviation: zScore,
+              anomalyType: AnomalyType.temporalPattern,
+              severity: AnomalySeverity.medium,
+              description: 'Chi tiêu bất thường vào thời gian ${hour}:00',
+              detectedAt: DateTime.now(),
+            ),
+          );
+        }
+      }
+    }
+
+    return anomalies;
+  }
+
+  static List<ExpenseAnomaly> _detectAmountAnomalies(
+    List<Transaction> transactions,
+  ) {
+    List<ExpenseAnomaly> anomalies = [];
+    List<double> amounts = transactions.map((t) => t.amount.abs()).toList();
+
+    if (amounts.length < _minDataPoints) return anomalies;
+
+    amounts.sort();
+    double q1 = amounts[(amounts.length * 0.25).floor()];
+    double q3 = amounts[(amounts.length * 0.75).floor()];
+    double iqr = q3 - q1;
+    double upperBound = q3 + (1.5 * iqr);
+    double lowerBound = q1 - (1.5 * iqr);
+
+    for (Transaction transaction in transactions) {
+      double amount = transaction.amount.abs();
+
+      if (amount > upperBound || amount < lowerBound) {
+        anomalies.add(
+          ExpenseAnomaly(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            transactionId: transaction.id.toString(),
+            categoryId: transaction.categoryId.toString(),
+            categoryName: 'Amount Outlier',
+            amount: amount,
+            expectedAmount: (q1 + q3) / 2,
+            deviation: amount > upperBound
+                ? (amount - upperBound) / iqr
+                : (lowerBound - amount) / iqr,
+            anomalyType: AnomalyType.amountOutlier,
+            severity: amount > upperBound * 2
+                ? AnomalySeverity.high
+                : AnomalySeverity.medium,
+            description: amount > upperBound
+                ? 'Chi tiêu cao bất thường'
+                : 'Chi tiêu thấp bất thường',
+            detectedAt: DateTime.now(),
+          ),
+        );
+      }
+    }
+
+    return anomalies;
+  }
+
+  static List<double> _getDailySpending(
+    List<Transaction> transactions,
+    int days,
+  ) {
+    Map<String, double> dailyTotals = {};
+    DateTime cutoffDate = DateTime.now().subtract(Duration(days: days));
+
+    for (Transaction transaction in transactions) {
+      if (transaction.transactionDate.isAfter(cutoffDate)) {
+        String dayKey =
+            '${transaction.transactionDate.year}-${transaction.transactionDate.month}-${transaction.transactionDate.day}';
+        dailyTotals[dayKey] =
+            (dailyTotals[dayKey] ?? 0) + transaction.amount.abs();
+      }
+    }
+
+    return dailyTotals.values.toList();
+  }
+
+  static double _linearRegressionForecast(
+    List<double> dailyAmounts,
+    int forecastDays,
+  ) {
+    if (dailyAmounts.length < 2)
+      return dailyAmounts.isNotEmpty ? dailyAmounts.first * forecastDays : 0.0;
+
+    int n = dailyAmounts.length;
+    double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+
+    for (int i = 0; i < n; i++) {
+      sumX += i;
+      sumY += dailyAmounts[i];
+      sumXY += i * dailyAmounts[i];
+      sumX2 += i * i;
+    }
+
+    double slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    double intercept = (sumY - slope * sumX) / n;
+
+    double totalForecast = 0;
+    for (int i = n; i < n + forecastDays; i++) {
+      totalForecast += math.max(0, slope * i + intercept);
+    }
+
+    return totalForecast;
+  }
+
+  static double _seasonalForecast(
+    List<Transaction> transactions,
+    int forecastDays,
+  ) {
+    Map<int, List<double>> monthlySpending = {};
+
+    for (Transaction transaction in transactions) {
+      int month = transaction.transactionDate.month;
+      monthlySpending
+          .putIfAbsent(month, () => [])
+          .add(transaction.amount.abs());
+    }
+
+    // Calculate average for current month
+    int currentMonth = DateTime.now().month;
+    List<double> currentMonthAmounts = monthlySpending[currentMonth] ?? [];
+
+    if (currentMonthAmounts.isEmpty) return 0.0;
+
+    double monthlyAverage =
+        currentMonthAmounts.reduce((a, b) => a + b) /
+        currentMonthAmounts.length;
+    return (monthlyAverage / 30) * forecastDays; // Approximate daily rate
+  }
+
+  static double _trendBasedForecast(
+    List<double> dailyAmounts,
+    int forecastDays,
+  ) {
+    if (dailyAmounts.length < 7)
+      return dailyAmounts.isNotEmpty ? dailyAmounts.last * forecastDays : 0.0;
+
+    // Calculate trend from last week vs previous week
+    List<double> lastWeek = dailyAmounts
+        .skip(math.max(0, dailyAmounts.length - 7))
+        .toList();
+    List<double> previousWeek = dailyAmounts
+        .skip(math.max(0, dailyAmounts.length - 14))
+        .take(7)
+        .toList();
+
+    double lastWeekAvg = lastWeek.reduce((a, b) => a + b) / lastWeek.length;
+    double previousWeekAvg = previousWeek.isNotEmpty
+        ? previousWeek.reduce((a, b) => a + b) / previousWeek.length
+        : lastWeekAvg;
+
+    double trend = lastWeekAvg - previousWeekAvg;
+    double baseDailyRate = lastWeekAvg;
+
+    return (baseDailyRate + trend) * forecastDays;
+  }
+
+  static double _movingAverageForecast(
+    List<double> dailyAmounts,
+    int forecastDays,
+  ) {
+    if (dailyAmounts.isEmpty) return 0.0;
+
+    int windowSize = math.min(7, dailyAmounts.length);
+    List<double> recentAmounts = dailyAmounts
+        .skip(dailyAmounts.length - windowSize)
+        .toList();
+
+    double average =
+        recentAmounts.reduce((a, b) => a + b) / recentAmounts.length;
+    return average * forecastDays;
+  }
+
+  static double _calculateForecastConfidence(List<double> dailyAmounts) {
+    if (dailyAmounts.length < 3) return 0.3;
+
+    double mean = dailyAmounts.reduce((a, b) => a + b) / dailyAmounts.length;
+    double stdDev = _calculateStandardDeviation(dailyAmounts, mean);
+    double coefficientOfVariation = mean > 0 ? stdDev / mean : 1.0;
+
+    // Lower variation = higher confidence
+    double confidence = math.max(
+      0.0,
+      math.min(1.0, 1.0 - coefficientOfVariation),
+    );
+
+    // Boost confidence with more data points
+    double dataBonus = math.min(0.3, dailyAmounts.length / 100.0);
+
+    return math.min(1.0, confidence + dataBonus);
+  }
+
+  static SpendingTrend _calculateSpendingTrend(List<double> dailyAmounts) {
+    if (dailyAmounts.length < 7) return SpendingTrend.stable;
+
+    List<double> firstHalf = dailyAmounts
+        .take(dailyAmounts.length ~/ 2)
+        .toList();
+    List<double> secondHalf = dailyAmounts
+        .skip(dailyAmounts.length ~/ 2)
+        .toList();
+
+    double firstAvg = firstHalf.reduce((a, b) => a + b) / firstHalf.length;
+    double secondAvg = secondHalf.reduce((a, b) => a + b) / secondHalf.length;
+
+    double changePercent = ((secondAvg - firstAvg) / firstAvg) * 100;
+
+    if (changePercent > 15) return SpendingTrend.increasing;
+    if (changePercent < -15) return SpendingTrend.decreasing;
+    return SpendingTrend.stable;
+  }
+
+  static List<String> _generateSpendingRecommendations(
+    List<Transaction> transactions,
+    Category category,
+    double predictedAmount,
+    double historicalAverage,
+    SpendingTrend trend,
+  ) {
+    List<String> recommendations = [];
+
+    if (predictedAmount > historicalAverage * 1.2) {
+      recommendations.add(
+        'Chi tiêu dự kiến cao hơn bình thường 20%, hãy xem xét kiểm soát',
+      );
+    }
+
+    if (trend == SpendingTrend.increasing) {
+      recommendations.add(
+        'Xu hướng chi tiêu đang tăng, cần điều chỉnh ngân sách',
+      );
+    }
+
+    switch (category.name.toLowerCase()) {
+      case 'ăn uống':
+        recommendations.add('Cân nhắc nấu ăn tại nhà để giảm chi phí');
+        break;
+      case 'giao thông':
+        recommendations.add('Sử dụng phương tiện công cộng để tiết kiệm');
+        break;
+      case 'giải trí':
+        recommendations.add('Tìm kiếm các hoạt động giải trí miễn phí');
+        break;
+    }
+
+    if (recommendations.isEmpty) {
+      recommendations.add('Duy trì thói quen chi tiêu hiện tại');
+    }
+
+    return recommendations;
+  }
+
+  static List<String> _generateSeasonalInsights(
+    Map<int, double> monthlySpending,
+    Map<int, double> weeklySpending,
+  ) {
+    List<String> insights = [];
+
+    // Find highest and lowest spending months
+    var sortedMonths = monthlySpending.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    if (sortedMonths.isNotEmpty) {
+      insights.add('Tháng chi tiêu cao nhất: Tháng ${sortedMonths.first.key}');
+      insights.add('Tháng chi tiêu thấp nhất: Tháng ${sortedMonths.last.key}');
+    }
+
+    // Find peak weekday
+    var sortedWeekdays = weeklySpending.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    if (sortedWeekdays.isNotEmpty) {
+      List<String> weekdayNames = [
+        '',
+        'Thứ 2',
+        'Thứ 3',
+        'Thứ 4',
+        'Thứ 5',
+        'Thứ 6',
+        'Thứ 7',
+        'Chủ nhật',
+      ];
+      insights.add(
+        'Ngày chi tiêu nhiều nhất: ${weekdayNames[sortedWeekdays.first.key]}',
+      );
+    }
+
+    return insights;
+  }
+
+  static String _generateVarianceMessage(
+    double variance,
+    double budget,
+    double actual,
+  ) {
+    if (variance > 0) {
+      return 'Vượt ngân sách ${variance.toStringAsFixed(1)}% (${actual.toStringAsFixed(0)}₫ / ${budget.toStringAsFixed(0)}₫)';
+    } else {
+      return 'Tiết kiệm được ${variance.abs().toStringAsFixed(1)}% ngân sách (${actual.toStringAsFixed(0)}₫ / ${budget.toStringAsFixed(0)}₫)';
+    }
+  }
+
+  static String _generateAnomalyDescription(
+    Transaction transaction,
+    double mean,
+    double zScore,
+  ) {
+    if (zScore > 0) {
+      return 'Chi tiêu cao bất thường: ${transaction.amount.abs().toStringAsFixed(0)}₫ (trung bình: ${mean.toStringAsFixed(0)}₫)';
+    } else {
+      return 'Chi tiêu thấp bất thường: ${transaction.amount.abs().toStringAsFixed(0)}₫ (trung bình: ${mean.toStringAsFixed(0)}₫)';
+    }
+  }
+
+  static double _calculateStandardDeviation(List<double> values, double mean) {
+    if (values.isEmpty) return 0.0;
+
+    double sumSquaredDiffs = values.fold(
+      0,
+      (sum, value) => sum + math.pow(value - mean, 2),
+    );
+    return math.sqrt(sumSquaredDiffs / values.length);
+  }
+
+  static double _calculateVariance(List<double> values) {
+    if (values.isEmpty) return 0.0;
+
+    double mean = values.reduce((a, b) => a + b) / values.length;
+    double sumSquaredDiffs = values.fold(
+      0,
+      (sum, value) => sum + math.pow(value - mean, 2),
+    );
+    return sumSquaredDiffs / values.length;
+  }
+}

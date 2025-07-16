@@ -1,0 +1,1170 @@
+import 'dart:math' as math;
+import '../models/investment_recommendation.dart';
+import '../models/transaction.dart';
+import '../models/salary_record.dart';
+
+class InvestmentRecommendationEngine {
+  static const double _minEmergencyFundMonths = 6.0;
+  static const double _maxInvestmentPercentage = 0.8; // 80% of income
+  static const Map<RiskTolerance, Map<String, double>>
+  _assetAllocationTemplates = {
+    RiskTolerance.conservative: {'bonds': 0.6, 'stocks': 0.25, 'cash': 0.15},
+    RiskTolerance.moderate: {
+      'stocks': 0.5,
+      'bonds': 0.35,
+      'alternatives': 0.1,
+      'cash': 0.05,
+    },
+    RiskTolerance.aggressive: {
+      'stocks': 0.7,
+      'alternatives': 0.15,
+      'bonds': 0.1,
+      'cash': 0.05,
+    },
+    RiskTolerance.veryAggressive: {
+      'stocks': 0.8,
+      'alternatives': 0.15,
+      'cash': 0.05,
+    },
+  };
+
+  /// Generate comprehensive investment recommendations based on user profile
+  static Future<InvestmentProfile> analyzeInvestmentProfile({
+    required List<SalaryRecord> salaryRecords,
+    required List<Transaction> transactions,
+    required UserInvestmentGoals goals,
+    required int age,
+    required double currentSavings,
+    required double monthlyExpenses,
+    required RiskTolerance? userRiskTolerance,
+  }) async {
+    // Calculate financial metrics
+    double monthlyIncome = _calculateAverageMonthlyIncome(salaryRecords);
+    double monthlySpending = _calculateAverageMonthlySpending(transactions);
+    double monthlySavings = monthlyIncome - monthlySpending;
+    double savingsRate = monthlyIncome > 0
+        ? (monthlySavings / monthlyIncome) * 100
+        : 0;
+
+    // Assess risk tolerance if not provided
+    RiskTolerance riskTolerance =
+        userRiskTolerance ??
+        _assessRiskTolerance(age, savingsRate, currentSavings, monthlyExpenses);
+
+    // Calculate investment capacity
+    InvestmentCapacity capacity = _calculateInvestmentCapacity(
+      monthlyIncome: monthlyIncome,
+      monthlyExpenses: monthlyExpenses,
+      currentSavings: currentSavings,
+      age: age,
+    );
+
+    // Determine investment timeline
+    int investmentTimelineYears = _calculateInvestmentTimeline(age, goals);
+
+    // Generate asset allocation
+    Map<String, double> assetAllocation = _generateAssetAllocation(
+      riskTolerance: riskTolerance,
+      age: age,
+      timelineYears: investmentTimelineYears,
+      goals: goals,
+    );
+
+    return InvestmentProfile(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      monthlyIncome: monthlyIncome,
+      monthlyExpenses: monthlySpending,
+      currentSavings: currentSavings,
+      currentInvestments: 0.0,
+      age: age,
+      riskTolerance: riskTolerance,
+      goals: [goals.goalType],
+      timeHorizon: _mapInvestmentTimelineToTimeHorizon(investmentTimelineYears),
+      priorities: [InvestmentPriority.safety],
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      investmentTimelineYears: investmentTimelineYears,
+      assetAllocation: _convertAssetAllocationToTypes(assetAllocation),
+      investmentCapacity: capacity,
+    );
+  }
+
+  /// Generate specific investment recommendations
+  static Future<List<InvestmentRecommendation>>
+  generateInvestmentRecommendations({
+    required InvestmentProfile profile,
+    required double availableAmount,
+    InvestmentType? preferredType,
+  }) async {
+    List<InvestmentRecommendation> recommendations = [];
+
+    // Emergency fund check
+    if (!_hasAdequateEmergencyFund(profile)) {
+      recommendations.add(_generateEmergencyFundRecommendation(profile));
+    }
+
+    // Core investment recommendations based on profile
+    if (profile.investmentCapacity.canInvest) {
+      // Stock investments
+      if (profile.assetAllocation['stocks']! > 0) {
+        recommendations.addAll(
+          _generateStockRecommendations(profile, availableAmount),
+        );
+      }
+
+      // Bond investments
+      if (profile.assetAllocation['bonds']! > 0) {
+        recommendations.addAll(
+          _generateBondRecommendations(profile, availableAmount),
+        );
+      }
+
+      // Alternative investments
+      if (profile.assetAllocation.containsKey('alternatives') &&
+          profile.assetAllocation['alternatives']! > 0) {
+        recommendations.addAll(
+          _generateAlternativeRecommendations(profile, availableAmount),
+        );
+      }
+
+      // Goal-specific recommendations
+      recommendations.addAll(
+        _generateGoalSpecificRecommendations(profile, availableAmount),
+      );
+    }
+
+    // Sort by priority and expected return
+    recommendations.sort((a, b) {
+      int priorityCompare = a.priority.index.compareTo(b.priority.index);
+      if (priorityCompare != 0) return priorityCompare;
+      return b.expectedAnnualReturn.compareTo(a.expectedAnnualReturn);
+    });
+
+    return recommendations.take(10).toList(); // Limit to top 10 recommendations
+  }
+
+  /// Analyze investment portfolio performance
+  static PortfolioAnalysis analyzePortfolioPerformance({
+    required List<Investment> currentHoldings,
+    required InvestmentProfile targetProfile,
+  }) {
+    double totalValue = currentHoldings.fold(
+      0,
+      (sum, inv) => sum + inv.currentValue,
+    );
+    double totalCost = currentHoldings.fold(
+      0,
+      (sum, inv) => sum + inv.initialAmount,
+    );
+    double totalReturn = totalValue - totalCost;
+    double returnPercentage = totalCost > 0
+        ? (totalReturn / totalCost) * 100
+        : 0;
+
+    // Calculate current asset allocation
+    Map<String, double> currentAllocation = _calculateCurrentAllocation(
+      currentHoldings,
+    );
+
+    // Compare with target allocation
+    Map<String, double> allocationDeviations = {};
+    for (String assetClass in targetProfile.assetAllocation.keys) {
+      double target = targetProfile.assetAllocation[assetClass]!;
+      double current = currentAllocation[assetClass] ?? 0;
+      allocationDeviations[assetClass] = current - target;
+    }
+
+    // Risk analysis
+    double portfolioRisk = _calculatePortfolioRisk(currentHoldings);
+
+    // Diversification score
+    double diversificationScore = _calculateDiversificationScore(
+      currentHoldings,
+    );
+
+    // Generate rebalancing recommendations
+    List<RebalancingRecommendation> rebalancingRecs =
+        _generateRebalancingRecommendations(
+          currentAllocation,
+          targetProfile.assetAllocation,
+          totalValue,
+        );
+
+    return PortfolioAnalysis(
+      totalValue: totalValue,
+      totalReturn: totalReturn,
+      returnPercentage: returnPercentage,
+      currentAllocation: currentAllocation,
+      targetAllocation: targetProfile.assetAllocation,
+      allocationDeviations: allocationDeviations,
+      portfolioRisk: portfolioRisk,
+      diversificationScore: diversificationScore,
+      rebalancingRecommendations: rebalancingRecs,
+      analysisDate: DateTime.now(),
+    );
+  }
+
+  /// Generate diversification analysis
+  static DiversificationAnalysis analyzeDiversification({
+    required List<Investment> holdings,
+  }) {
+    Map<String, double> sectorAllocation = {};
+    Map<String, double> geographicAllocation = {};
+    Map<String, double> assetTypeAllocation = {};
+
+    double totalValue = holdings.fold(0, (sum, inv) => sum + inv.currentValue);
+
+    for (Investment holding in holdings) {
+      double weight = holding.currentValue / totalValue;
+
+      // Sector allocation
+      sectorAllocation[holding.sector ?? 'Unknown'] =
+          (sectorAllocation[holding.sector ?? 'Unknown'] ?? 0) + weight;
+
+      // Geographic allocation
+      geographicAllocation[holding.region ?? 'Unknown'] =
+          (geographicAllocation[holding.region ?? 'Unknown'] ?? 0) + weight;
+
+      // Asset type allocation
+      assetTypeAllocation[holding.type.toString()] =
+          (assetTypeAllocation[holding.type.toString()] ?? 0) + weight;
+    }
+
+    // Calculate concentration risk
+    double concentrationRisk = _calculateConcentrationRisk(holdings);
+
+    // Generate diversification recommendations
+    List<String> recommendations = _generateDiversificationRecommendations(
+      sectorAllocation,
+      geographicAllocation,
+      assetTypeAllocation,
+      concentrationRisk,
+    );
+
+    return DiversificationAnalysis(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      portfolioId: 'default',
+      diversificationScore: _calculateDiversificationScore(holdings),
+      concentrationRisks: {
+        'sectorConcentration': concentrationRisk,
+        'geographicConcentration': 0.0,
+        'assetTypeConcentration': 0.0,
+      },
+      recommendations: recommendations,
+      analysisDate: DateTime.now(),
+    );
+  }
+
+  /// Calculate investment tax efficiency
+  static TaxEfficiencyAnalysis analyzeTaxEfficiency({
+    required List<Investment> holdings,
+    required double marginalTaxRate,
+  }) {
+    double totalTaxableIncome = 0;
+    double totalTaxOwed = 0;
+    Map<String, double> taxByCategory = {};
+
+    for (Investment holding in holdings) {
+      double annualIncome = holding.annualDividendYield * holding.currentValue;
+      double taxOnIncome = annualIncome * marginalTaxRate;
+
+      totalTaxableIncome += annualIncome;
+      totalTaxOwed += taxOnIncome;
+
+      String category = holding.type.toString();
+      taxByCategory[category] = (taxByCategory[category] ?? 0) + taxOnIncome;
+    }
+
+    double taxEfficiencyScore = totalTaxableIncome > 0
+        ? 1.0 - (totalTaxOwed / totalTaxableIncome)
+        : 1.0;
+
+    List<String> taxOptimizationTips = _generateTaxOptimizationTips(
+      holdings,
+      marginalTaxRate,
+    );
+
+    return TaxEfficiencyAnalysis(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      portfolioId: 'default',
+      taxEfficiencyScore: taxEfficiencyScore,
+      estimatedTaxLiability: totalTaxOwed,
+      taxOptimizationRecommendations: taxOptimizationTips,
+      analysisDate: DateTime.now(),
+    );
+  }
+
+  // Helper methods for conversion
+  static TimeHorizon _mapInvestmentTimelineToTimeHorizon(int years) {
+    if (years <= 3) return TimeHorizon.shortTerm;
+    if (years <= 10) return TimeHorizon.mediumTerm;
+    return TimeHorizon.longTerm;
+  }
+
+  static Map<InvestmentType, double> _convertAssetAllocationToTypes(
+    Map<String, double> allocation,
+  ) {
+    Map<InvestmentType, double> result = {};
+
+    for (String key in allocation.keys) {
+      InvestmentType? type;
+      switch (key.toLowerCase()) {
+        case 'stocks':
+          type = InvestmentType.stocks;
+          break;
+        case 'bonds':
+          type = InvestmentType.bonds;
+          break;
+        case 'cash':
+          type = InvestmentType.cash;
+          break;
+        case 'alternatives':
+          type = InvestmentType.commodities;
+          break;
+        default:
+          type = InvestmentType.stocks;
+      }
+      result[type] = allocation[key] ?? 0.0;
+    }
+
+    return result;
+  }
+
+  // Private helper methods
+  static double _calculateAverageMonthlyIncome(
+    List<SalaryRecord> salaryRecords,
+  ) {
+    if (salaryRecords.isEmpty) return 0.0;
+    double total = salaryRecords.fold(0, (sum, record) => sum + record.amount);
+    return total / salaryRecords.length;
+  }
+
+  static double _calculateAverageMonthlySpending(
+    List<Transaction> transactions,
+  ) {
+    List<Transaction> expenses = transactions
+        .where((t) => t.amount < 0)
+        .toList();
+    if (expenses.isEmpty) return 0.0;
+
+    Map<String, double> monthlyTotals = {};
+    for (Transaction expense in expenses) {
+      String monthKey = '${expense.date.year}-${expense.date.month}';
+      monthlyTotals[monthKey] =
+          (monthlyTotals[monthKey] ?? 0) + expense.amount.abs();
+    }
+
+    if (monthlyTotals.isEmpty) return 0.0;
+    return monthlyTotals.values.reduce((a, b) => a + b) / monthlyTotals.length;
+  }
+
+  static RiskTolerance _assessRiskTolerance(
+    int age,
+    double savingsRate,
+    double currentSavings,
+    double monthlyExpenses,
+  ) {
+    int score = 0;
+
+    // Age factor (younger = higher risk tolerance)
+    if (age < 30)
+      score += 3;
+    else if (age < 40)
+      score += 2;
+    else if (age < 50)
+      score += 1;
+
+    // Savings rate factor
+    if (savingsRate > 30)
+      score += 3;
+    else if (savingsRate > 20)
+      score += 2;
+    else if (savingsRate > 10)
+      score += 1;
+
+    // Emergency fund factor
+    double emergencyFundMonths = currentSavings / monthlyExpenses;
+    if (emergencyFundMonths > 12)
+      score += 2;
+    else if (emergencyFundMonths > 6)
+      score += 1;
+
+    if (score >= 7) return RiskTolerance.veryAggressive;
+    if (score >= 5) return RiskTolerance.aggressive;
+    if (score >= 3) return RiskTolerance.moderate;
+    return RiskTolerance.conservative;
+  }
+
+  static InvestmentCapacity _calculateInvestmentCapacity({
+    required double monthlyIncome,
+    required double monthlyExpenses,
+    required double currentSavings,
+    required int age,
+  }) {
+    double monthlySavings = monthlyIncome - monthlyExpenses;
+    double emergencyFundNeeded = monthlyExpenses * _minEmergencyFundMonths;
+    bool hasEmergencyFund = currentSavings >= emergencyFundNeeded;
+
+    double availableForInvestment = hasEmergencyFund
+        ? monthlySavings
+        : math.max(
+            0,
+            monthlySavings - (emergencyFundNeeded - currentSavings) / 12,
+          );
+
+    double maxMonthlyInvestment = monthlyIncome * _maxInvestmentPercentage;
+    double recommendedMonthlyInvestment = math.min(
+      availableForInvestment * 0.8, // Conservative 80% of available
+      maxMonthlyInvestment,
+    );
+
+    return InvestmentCapacity(
+      monthlyIncome: monthlyIncome,
+      monthlyExpenses: monthlyExpenses,
+      monthlySavings: monthlySavings,
+      currentSavings: currentSavings,
+      emergencyFundTarget: emergencyFundNeeded,
+      hasAdequateEmergencyFund: hasEmergencyFund,
+      availableForInvestment: availableForInvestment,
+      recommendedMonthlyInvestment: math.max(0, recommendedMonthlyInvestment),
+      canInvest: recommendedMonthlyInvestment > 0,
+    );
+  }
+
+  static int _calculateInvestmentTimeline(int age, UserInvestmentGoals goals) {
+    int timelineYears = 65 - age; // Default to retirement age
+
+    switch (goals.primaryGoal) {
+      case InvestmentGoal.retirement:
+        timelineYears = math.max(10, 65 - age);
+        break;
+      case InvestmentGoal.homeOwnership:
+        timelineYears = math.min(10, timelineYears);
+        break;
+      case InvestmentGoal.education:
+        timelineYears = math.min(15, timelineYears);
+        break;
+      case InvestmentGoal.wealthBuilding:
+        timelineYears = math.max(15, timelineYears);
+        break;
+      case InvestmentGoal.shortTerm:
+        timelineYears = math.min(5, timelineYears);
+        break;
+    }
+
+    return math.max(1, timelineYears);
+  }
+
+  static Map<String, double> _generateAssetAllocation({
+    required RiskTolerance riskTolerance,
+    required int age,
+    required int timelineYears,
+    required UserInvestmentGoals goals,
+  }) {
+    Map<String, double> baseAllocation = Map.from(
+      _assetAllocationTemplates[riskTolerance]!,
+    );
+
+    // Age-based adjustments (rule of thumb: stocks = 100 - age)
+    double ageBasedStockPercentage = (100 - age) / 100.0;
+    ageBasedStockPercentage = math.max(
+      0.1,
+      math.min(0.9, ageBasedStockPercentage),
+    );
+
+    // Adjust based on timeline
+    if (timelineYears < 5) {
+      // Short timeline - more conservative
+      baseAllocation['cash'] = (baseAllocation['cash'] ?? 0) + 0.1;
+      baseAllocation['stocks'] = math.max(
+        0.1,
+        (baseAllocation['stocks'] ?? 0) - 0.1,
+      );
+    } else if (timelineYears > 20) {
+      // Long timeline - more aggressive
+      baseAllocation['stocks'] = math.min(
+        0.8,
+        (baseAllocation['stocks'] ?? 0) + 0.1,
+      );
+      baseAllocation['cash'] = math.max(
+        0.05,
+        (baseAllocation['cash'] ?? 0) - 0.05,
+      );
+    }
+
+    // Goal-based adjustments
+    switch (goals.primaryGoal) {
+      case InvestmentGoal.homeOwnership:
+        baseAllocation['cash'] = (baseAllocation['cash'] ?? 0) + 0.1;
+        baseAllocation['bonds'] = (baseAllocation['bonds'] ?? 0) + 0.1;
+        baseAllocation['stocks'] = math.max(
+          0.2,
+          (baseAllocation['stocks'] ?? 0) - 0.2,
+        );
+        break;
+      case InvestmentGoal.wealthBuilding:
+        baseAllocation['stocks'] = math.min(
+          0.8,
+          (baseAllocation['stocks'] ?? 0) + 0.1,
+        );
+        baseAllocation['alternatives'] = math.min(
+          0.2,
+          (baseAllocation['alternatives'] ?? 0) + 0.05,
+        );
+        break;
+      default:
+        break;
+    }
+
+    // Normalize to 100%
+    double total = baseAllocation.values.fold(0, (sum, value) => sum + value);
+    if (total != 1.0) {
+      baseAllocation.updateAll((key, value) => value / total);
+    }
+
+    return baseAllocation;
+  }
+
+  static double _calculateFinancialHealthScore(
+    double savingsRate,
+    double currentSavings,
+    double monthlyExpenses,
+    int age,
+  ) {
+    double score = 0.0;
+
+    // Savings rate component (0-40 points)
+    score += math.min(40, savingsRate * 2);
+
+    // Emergency fund component (0-30 points)
+    double emergencyFundMonths = currentSavings / monthlyExpenses;
+    score += math.min(30, emergencyFundMonths * 5);
+
+    // Age-appropriate savings component (0-30 points)
+    double targetSavingsMultiple = age / 10.0; // Rule of thumb
+    double actualSavingsMultiple = currentSavings / (monthlyExpenses * 12);
+    double savingsRatio = actualSavingsMultiple / targetSavingsMultiple;
+    score += math.min(30, savingsRatio * 30);
+
+    return math.min(100, score);
+  }
+
+  static bool _hasAdequateEmergencyFund(InvestmentProfile profile) {
+    return profile.investmentCapacity.hasAdequateEmergencyFund;
+  }
+
+  static InvestmentRecommendation _generateEmergencyFundRecommendation(
+    InvestmentProfile profile,
+  ) {
+    double shortfall =
+        profile.investmentCapacity.emergencyFundTarget -
+        profile.investmentCapacity.currentSavings;
+
+    return InvestmentRecommendation(
+      id: 'emergency_fund',
+      title: 'Quỹ khẩn cấp',
+      description:
+          'Xây dựng quỹ khẩn cấp ${_minEmergencyFundMonths.toInt()} tháng chi phí',
+      type: InvestmentType.cash,
+      recommendedAmount: shortfall,
+      minimumAmount: shortfall * 0.5,
+      expectedAnnualReturn: 0.02, // 2% savings account
+      riskLevel: RiskLevel.veryLow,
+      timeHorizon: TimeHorizon.shortTerm,
+      priority: InvestmentPriority.high,
+      reasons: [
+        'Bảo vệ tài chính trước các chi phí bất ngờ',
+        'Tạo nền tảng an toàn trước khi đầu tư',
+        'Tránh phải rút tiền đầu tư khi cần thiết',
+      ],
+      risks: ['Lạm phát có thể làm giảm sức mua'],
+      actionSteps: [
+        'Mở tài khoản tiết kiệm lãi suất cao',
+        'Thiết lập chuyển khoản tự động hàng tháng',
+        'Tích lũy ${(shortfall / 12).toStringAsFixed(0)} ₫/tháng',
+      ],
+      category: 'Chuẩn bị đầu tư',
+    );
+  }
+
+  static List<InvestmentRecommendation> _generateStockRecommendations(
+    InvestmentProfile profile,
+    double availableAmount,
+  ) {
+    List<InvestmentRecommendation> recommendations = [];
+    double stockAllocation = profile.assetAllocation['stocks'] ?? 0;
+    double stockAmount = availableAmount * stockAllocation;
+
+    if (stockAmount < 100000)
+      return recommendations; // Minimum investment threshold
+
+    // Index fund recommendation
+    recommendations.add(
+      InvestmentRecommendation(
+        id: 'vn_index_fund',
+        title: 'Quỹ chỉ số VN30',
+        description: 'Đầu tư vào top 30 cổ phiếu lớn nhất Việt Nam',
+        type: InvestmentType.indexFund,
+        recommendedAmount: stockAmount * 0.6,
+        minimumAmount: 100000,
+        expectedAnnualReturn: 0.08, // 8%
+        riskLevel: RiskLevel.medium,
+        timeHorizon: _getTimeHorizonFromYears(profile.investmentTimelineYears),
+        priority: InvestmentPriority.high,
+        reasons: [
+          'Đa dạng hóa rủi ro với 30 cổ phiếu hàng đầu',
+          'Chi phí quản lý thấp',
+          'Phù hợp với nhà đầu tư mới bắt đầu',
+        ],
+        risks: [
+          'Biến động theo thị trường chung',
+          'Tập trung vào thị trường Việt Nam',
+        ],
+        actionSteps: [
+          'Mở tài khoản chứng khoán',
+          'Nghiên cứu các quỹ ETF VN30',
+          'Thiết lập đầu tư định kỳ',
+        ],
+        category: 'Cổ phiếu',
+      ),
+    );
+
+    // Individual stocks for aggressive investors
+    if (profile.riskTolerance == RiskTolerance.aggressive ||
+        profile.riskTolerance == RiskTolerance.veryAggressive) {
+      recommendations.add(
+        InvestmentRecommendation(
+          id: 'blue_chip_stocks',
+          title: 'Cổ phiếu blue-chip',
+          description: 'Đầu tư vào các cổ phiếu dẫn đầu ngành',
+          type: InvestmentType.stocks,
+          recommendedAmount: stockAmount * 0.4,
+          minimumAmount: 500000,
+          expectedAnnualReturn: 0.12, // 12%
+          riskLevel: RiskLevel.mediumHigh,
+          timeHorizon: _getTimeHorizonFromYears(
+            profile.investmentTimelineYears,
+          ),
+          priority: InvestmentPriority.medium,
+          reasons: [
+            'Tiềm năng sinh lời cao hơn',
+            'Cơ hội tham gia vào tăng trưởng doanh nghiệp',
+            'Linh hoạt trong lựa chọn',
+          ],
+          risks: [
+            'Rủi ro riêng của từng doanh nghiệp',
+            'Cần kiến thức và thời gian nghiên cứu',
+            'Biến động giá mạnh',
+          ],
+          actionSteps: [
+            'Nghiên cứu báo cáo tài chính',
+            'Đa dạng hóa 5-10 cổ phiếu',
+            'Theo dõi tin tức doanh nghiệp',
+          ],
+          category: 'Cổ phiếu',
+        ),
+      );
+    }
+
+    return recommendations;
+  }
+
+  static List<InvestmentRecommendation> _generateBondRecommendations(
+    InvestmentProfile profile,
+    double availableAmount,
+  ) {
+    List<InvestmentRecommendation> recommendations = [];
+    double bondAllocation = profile.assetAllocation['bonds'] ?? 0;
+    double bondAmount = availableAmount * bondAllocation;
+
+    if (bondAmount < 50000) return recommendations;
+
+    // Government bonds
+    recommendations.add(
+      InvestmentRecommendation(
+        id: 'government_bonds',
+        title: 'Trái phiếu Chính phủ',
+        description: 'Đầu tư an toàn vào trái phiếu do Chính phủ phát hành',
+        type: InvestmentType.bonds,
+        recommendedAmount: bondAmount * 0.7,
+        minimumAmount: 50000,
+        expectedAnnualReturn: 0.05, // 5%
+        riskLevel: RiskLevel.low,
+        timeHorizon: TimeHorizon.mediumTerm,
+        priority: InvestmentPriority.medium,
+        reasons: [
+          'Được Chính phủ bảo lãnh',
+          'Thu nhập ổn định',
+          'Thanh khoản tốt',
+        ],
+        risks: ['Lãi suất thấp hơn cổ phiếu', 'Rủi ro lạm phát'],
+        actionSteps: [
+          'Mua qua ngân hàng hoặc công ty chứng khoán',
+          'Chọn kỳ hạn phù hợp với mục tiêu',
+          'Xem xét tái đầu tư khi đến hạn',
+        ],
+        category: 'Trái phiếu',
+      ),
+    );
+
+    // Corporate bonds for higher yield
+    if (bondAmount > 100000) {
+      recommendations.add(
+        InvestmentRecommendation(
+          id: 'corporate_bonds',
+          title: 'Trái phiếu Doanh nghiệp',
+          description:
+              'Trái phiếu của các doanh nghiệp uy tín với lãi suất cao hơn',
+          type: InvestmentType.bonds,
+          recommendedAmount: bondAmount * 0.3,
+          minimumAmount: 100000,
+          expectedAnnualReturn: 0.07, // 7%
+          riskLevel: RiskLevel.mediumLow,
+          timeHorizon: TimeHorizon.mediumTerm,
+          priority: InvestmentPriority.low,
+          reasons: [
+            'Lãi suất cao hơn trái phiếu Chính phủ',
+            'Đa dạng hóa danh mục',
+            'Thu nhập cố định',
+          ],
+          risks: [
+            'Rủi ro tín dụng của doanh nghiệp',
+            'Thanh khoản có thể thấp hơn',
+          ],
+          actionSteps: [
+            'Nghiên cứu xếp hạng tín dụng',
+            'Đa dạng hóa nhiều doanh nghiệp',
+            'Theo dõi tình hình tài chính',
+          ],
+          category: 'Trái phiếu',
+        ),
+      );
+    }
+
+    return recommendations;
+  }
+
+  static List<InvestmentRecommendation> _generateAlternativeRecommendations(
+    InvestmentProfile profile,
+    double availableAmount,
+  ) {
+    List<InvestmentRecommendation> recommendations = [];
+    double altAllocation = profile.assetAllocation['alternatives'] ?? 0;
+    double altAmount = availableAmount * altAllocation;
+
+    if (altAmount < 500000)
+      return recommendations; // Higher minimum for alternatives
+
+    // Real estate investment trusts
+    recommendations.add(
+      InvestmentRecommendation(
+        id: 'real_estate_funds',
+        title: 'Quỹ Bất động sản (REITs)',
+        description: 'Đầu tư vào bất động sản thông qua quỹ đầu tư',
+        type: InvestmentType.realEstate,
+        recommendedAmount: altAmount * 0.6,
+        minimumAmount: 500000,
+        expectedAnnualReturn: 0.09, // 9%
+        riskLevel: RiskLevel.medium,
+        timeHorizon: TimeHorizon.longTerm,
+        priority: InvestmentPriority.medium,
+        reasons: [
+          'Tiếp cận thị trường bất động sản với vốn nhỏ',
+          'Đa dạng hóa tài sản',
+          'Thu nhập từ cho thuê',
+        ],
+        risks: [
+          'Biến động theo thị trường bất động sản',
+          'Thanh khoản thấp hơn cổ phiếu',
+        ],
+        actionSteps: [
+          'Nghiên cứu các quỹ REITs',
+          'Đánh giá danh mục bất động sản',
+          'Theo dõi thị trường bất động sản',
+        ],
+        category: 'Đầu tư thay thế',
+      ),
+    );
+
+    // Gold for hedging
+    if (altAmount > 1000000) {
+      recommendations.add(
+        InvestmentRecommendation(
+          id: 'gold_investment',
+          title: 'Vàng đầu tư',
+          description: 'Bảo toàn tài sản với vàng trong dài hạn',
+          type: InvestmentType.commodities,
+          recommendedAmount: altAmount * 0.4,
+          minimumAmount: 1000000,
+          expectedAnnualReturn: 0.04, // 4%
+          riskLevel: RiskLevel.medium,
+          timeHorizon: TimeHorizon.longTerm,
+          priority: InvestmentPriority.low,
+          reasons: [
+            'Bảo toàn giá trị trước lạm phát',
+            'Đa dạng hóa rủi ro',
+            'Tài sản truyền thống',
+          ],
+          risks: [
+            'Không sinh lời định kỳ',
+            'Biến động giá mạnh',
+            'Chi phí lưu trữ',
+          ],
+          actionSteps: [
+            'Mua vàng miếng SJC',
+            'Bảo quản an toàn',
+            'Theo dõi giá vàng thế giới',
+          ],
+          category: 'Đầu tư thay thế',
+        ),
+      );
+    }
+
+    return recommendations;
+  }
+
+  static List<InvestmentRecommendation> _generateGoalSpecificRecommendations(
+    InvestmentProfile profile,
+    double availableAmount,
+  ) {
+    List<InvestmentRecommendation> recommendations = [];
+
+    switch (profile.goals.primaryGoal) {
+      case InvestmentGoal.education:
+        recommendations.add(
+          _generateEducationSavingsRecommendation(availableAmount),
+        );
+        break;
+      case InvestmentGoal.homeOwnership:
+        recommendations.add(
+          _generateHomeSavingsRecommendation(availableAmount),
+        );
+        break;
+      case InvestmentGoal.retirement:
+        recommendations.add(
+          _generateRetirementSavingsRecommendation(profile, availableAmount),
+        );
+        break;
+      default:
+        break;
+    }
+
+    return recommendations;
+  }
+
+  static InvestmentRecommendation _generateEducationSavingsRecommendation(
+    double amount,
+  ) {
+    return InvestmentRecommendation(
+      id: 'education_savings',
+      title: 'Quỹ Giáo dục',
+      description: 'Tiết kiệm cho chi phí giáo dục tương lai',
+      type: InvestmentType.educationSavings,
+      recommendedAmount: amount * 0.3,
+      minimumAmount: 200000,
+      expectedAnnualReturn: 0.06, // 6%
+      riskLevel: RiskLevel.mediumLow,
+      timeHorizon: TimeHorizon.mediumTerm,
+      priority: InvestmentPriority.high,
+      reasons: [
+        'Chuẩn bị tài chính cho giáo dục',
+        'Tăng trưởng vượt lạm phát',
+        'Kỷ luật tiết kiệm',
+      ],
+      risks: ['Có thể không đủ nếu chi phí tăng nhanh', 'Cần cam kết dài hạn'],
+      actionSteps: [
+        'Ước tính chi phí giáo dục tương lai',
+        'Thiết lập tiết kiệm định kỳ',
+        'Đầu tư vào các kênh ổn định',
+      ],
+      category: 'Mục tiêu cụ thể',
+    );
+  }
+
+  static InvestmentRecommendation _generateHomeSavingsRecommendation(
+    double amount,
+  ) {
+    return InvestmentRecommendation(
+      id: 'home_savings',
+      title: 'Quỹ Mua nhà',
+      description: 'Tích lũy cho việc mua nhà đầu tiên',
+      type: InvestmentType.savings,
+      recommendedAmount: amount * 0.4,
+      minimumAmount: 500000,
+      expectedAnnualReturn: 0.04, // 4%
+      riskLevel: RiskLevel.low,
+      timeHorizon: TimeHorizon.mediumTerm,
+      priority: InvestmentPriority.high,
+      reasons: [
+        'Bảo toàn vốn cho mục tiêu quan trọng',
+        'Thanh khoản cao khi cần',
+        'Rủi ro thấp',
+      ],
+      risks: ['Thu nhập thấp', 'Có thể không theo kịp giá nhà tăng'],
+      actionSteps: [
+        'Ước tính chi phí mua nhà',
+        'Tiết kiệm 20-30% giá trị nhà',
+        'Nghiên cứu các chương trình vay ưu đãi',
+      ],
+      category: 'Mục tiêu cụ thể',
+    );
+  }
+
+  static InvestmentRecommendation _generateRetirementSavingsRecommendation(
+    InvestmentProfile profile,
+    double amount,
+  ) {
+    return InvestmentRecommendation(
+      id: 'retirement_savings',
+      title: 'Quỹ Hưu trí',
+      description: 'Đầu tư dài hạn cho tuổi nghỉ hưu',
+      type: InvestmentType.retirement,
+      recommendedAmount: amount * 0.5,
+      minimumAmount: 300000,
+      expectedAnnualReturn: 0.08, // 8%
+      riskLevel: RiskLevel.medium,
+      timeHorizon: TimeHorizon.longTerm,
+      priority: InvestmentPriority.high,
+      reasons: [
+        'Lợi ích của lãi kép trong dài hạn',
+        'Đảm bảo an ninh tài chính tuổi già',
+        'Bắt đầu sớm = lợi thế lớn',
+      ],
+      risks: [
+        'Biến động thị trường dài hạn',
+        'Lạm phát có thể ảnh hưởng sức mua',
+      ],
+      actionSteps: [
+        'Tính toán nhu cầu hưu trí',
+        'Đầu tư định kỳ hàng tháng',
+        'Tăng dần tỷ lệ tiết kiệm theo thu nhập',
+      ],
+      category: 'Mục tiêu cụ thể',
+    );
+  }
+
+  // Additional helper methods for calculations
+  static Map<String, double> _calculateCurrentAllocation(
+    List<Investment> holdings,
+  ) {
+    Map<String, double> allocation = {};
+    double totalValue = holdings.fold(0, (sum, inv) => sum + inv.currentValue);
+
+    if (totalValue == 0) return allocation;
+
+    for (Investment holding in holdings) {
+      String assetClass = _mapInvestmentTypeToAssetClass(holding.type);
+      allocation[assetClass] =
+          (allocation[assetClass] ?? 0) + (holding.currentValue / totalValue);
+    }
+
+    return allocation;
+  }
+
+  static String _mapInvestmentTypeToAssetClass(InvestmentType type) {
+    switch (type) {
+      case InvestmentType.stocks:
+      case InvestmentType.indexFund:
+        return 'stocks';
+      case InvestmentType.bonds:
+        return 'bonds';
+      case InvestmentType.realEstate:
+      case InvestmentType.commodities:
+        return 'alternatives';
+      case InvestmentType.cash:
+      case InvestmentType.savings:
+        return 'cash';
+      default:
+        return 'alternatives';
+    }
+  }
+
+  static double _calculatePortfolioRisk(List<Investment> holdings) {
+    // Simplified risk calculation based on asset type weights
+    Map<RiskLevel, double> riskWeights = {
+      RiskLevel.veryLow: 0.02,
+      RiskLevel.low: 0.05,
+      RiskLevel.mediumLow: 0.08,
+      RiskLevel.medium: 0.12,
+      RiskLevel.mediumHigh: 0.16,
+      RiskLevel.high: 0.20,
+      RiskLevel.veryHigh: 0.25,
+    };
+
+    double totalValue = holdings.fold(0, (sum, inv) => sum + inv.currentValue);
+    if (totalValue == 0) return 0.0;
+
+    double weightedRisk = 0.0;
+    for (Investment holding in holdings) {
+      double weight = holding.currentValue / totalValue;
+      RiskLevel risk = _getInvestmentTypeRisk(holding.type);
+      weightedRisk += weight * (riskWeights[risk] ?? 0.1);
+    }
+
+    return weightedRisk;
+  }
+
+  static RiskLevel _getInvestmentTypeRisk(InvestmentType type) {
+    switch (type) {
+      case InvestmentType.cash:
+      case InvestmentType.savings:
+        return RiskLevel.veryLow;
+      case InvestmentType.bonds:
+        return RiskLevel.low;
+      case InvestmentType.indexFund:
+        return RiskLevel.medium;
+      case InvestmentType.stocks:
+        return RiskLevel.mediumHigh;
+      case InvestmentType.realEstate:
+        return RiskLevel.medium;
+      case InvestmentType.commodities:
+        return RiskLevel.mediumHigh;
+      default:
+        return RiskLevel.medium;
+    }
+  }
+
+  static double _calculateDiversificationScore(List<Investment> holdings) {
+    if (holdings.isEmpty) return 0.0;
+
+    // Calculate based on number of holdings and concentration
+    int numHoldings = holdings.length;
+    double concentrationPenalty = _calculateConcentrationRisk(holdings);
+
+    double baseScore = math.min(
+      1.0,
+      numHoldings / 10.0,
+    ); // Max score at 10+ holdings
+    double diversificationScore = baseScore * (1.0 - concentrationPenalty);
+
+    return math.max(0.0, math.min(1.0, diversificationScore));
+  }
+
+  static double _calculateConcentrationRisk(List<Investment> holdings) {
+    if (holdings.isEmpty) return 0.0;
+
+    double totalValue = holdings.fold(0, (sum, inv) => sum + inv.currentValue);
+    if (totalValue == 0) return 0.0;
+
+    // Calculate Herfindahl-Hirschman Index (HHI)
+    double hhi = 0.0;
+    for (Investment holding in holdings) {
+      double weight = holding.currentValue / totalValue;
+      hhi += weight * weight;
+    }
+
+    // Convert to concentration risk (0 = well diversified, 1 = highly concentrated)
+    return math.max(
+      0.0,
+      (hhi - 0.1) / 0.9,
+    ); // Normalize assuming 0.1 is well-diversified threshold
+  }
+
+  static List<RebalancingRecommendation> _generateRebalancingRecommendations(
+    Map<String, double> currentAllocation,
+    Map<String, double> targetAllocation,
+    double totalValue,
+  ) {
+    List<RebalancingRecommendation> recommendations = [];
+
+    for (String assetClass in targetAllocation.keys) {
+      double target = targetAllocation[assetClass]!;
+      double current = currentAllocation[assetClass] ?? 0;
+      double deviation = current - target;
+
+      if (deviation.abs() > 0.05) {
+        // 5% threshold
+        recommendations.add(
+          RebalancingRecommendation(
+            assetClass: assetClass,
+            currentAllocation: current,
+            targetAllocation: target,
+            deviation: deviation,
+            recommendedAction: deviation > 0 ? 'Giảm' : 'Tăng',
+            amountToAdjust: (deviation.abs() * totalValue),
+          ),
+        );
+      }
+    }
+
+    return recommendations;
+  }
+
+  static List<String> _generateDiversificationRecommendations(
+    Map<String, double> sectorAllocation,
+    Map<String, double> geographicAllocation,
+    Map<String, double> assetTypeAllocation,
+    double concentrationRisk,
+  ) {
+    List<String> recommendations = [];
+
+    if (concentrationRisk > 0.3) {
+      recommendations.add('Danh mục quá tập trung - nên đa dạng hóa thêm');
+    }
+
+    // Check sector concentration
+    var maxSector = sectorAllocation.entries.reduce(
+      (a, b) => a.value > b.value ? a : b,
+    );
+    if (maxSector.value > 0.4) {
+      recommendations.add(
+        'Tập trung quá nhiều vào ngành ${maxSector.key} (${(maxSector.value * 100).toStringAsFixed(1)}%)',
+      );
+    }
+
+    // Check geographic concentration
+    var maxRegion = geographicAllocation.entries.reduce(
+      (a, b) => a.value > b.value ? a : b,
+    );
+    if (maxRegion.value > 0.7) {
+      recommendations.add(
+        'Cân nhắc đầu tư ra nước ngoài để giảm rủi ro địa lý',
+      );
+    }
+
+    // Asset type recommendations
+    if (assetTypeAllocation.length < 3) {
+      recommendations.add(
+        'Nên đầu tư thêm các loại tài sản khác để đa dạng hóa',
+      );
+    }
+
+    return recommendations;
+  }
+
+  static List<String> _generateTaxOptimizationTips(
+    List<Investment> holdings,
+    double marginalTaxRate,
+  ) {
+    List<String> tips = [];
+
+    // High dividend yield stocks analysis
+    List<Investment> highDividendStocks = holdings
+        .where((h) => h.annualDividendYield > 0.05)
+        .toList();
+
+    if (highDividendStocks.isNotEmpty && marginalTaxRate > 0.2) {
+      tips.add('Cân nhậc giảm tỷ lệ cổ phiếu trả cổ tức cao để tối ưu thuế');
+    }
+
+    // Tax-efficient fund recommendations
+    tips.add('Ưu tiên các quỹ chỉ số có tỷ lệ luân chuyển thấp');
+    tips.add('Xem xét đầu tư dài hạn để được ưu đãi thuế thu nhập vốn');
+
+    // Tax-loss harvesting
+    List<Investment> losers = holdings
+        .where((h) => h.currentValue < h.initialAmount)
+        .toList();
+    if (losers.isNotEmpty) {
+      tips.add('Cân nhắc chốt lỗ để bù trừ với lãi vốn');
+    }
+
+    return tips;
+  }
+
+  static TimeHorizon _getTimeHorizonFromYears(int years) {
+    if (years <= 2) return TimeHorizon.shortTerm;
+    if (years <= 7) return TimeHorizon.mediumTerm;
+    return TimeHorizon.longTerm;
+  }
+}

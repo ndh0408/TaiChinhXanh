@@ -1,0 +1,586 @@
+import 'package:sqflite/sqflite.dart';
+import '../db/db_init.dart';
+import '../models/expense_forecast.dart';
+import '../models/transaction.dart';
+import '../models/category.dart';
+import '../ai/expense_forecasting_engine.dart';
+import '../services/transaction_service.dart';
+
+class ExpenseForecastingService {
+  static Future<Database> get _db async => await DatabaseHelper.database;
+
+  // Generate and save expense forecasts
+  static Future<List<ExpenseForecast>> generateForecasts({
+    List<int> forecastDays = const [7, 30, 90],
+    bool saveToDatabase = true,
+  }) async {
+    try {
+      // Get required data
+      List<Transaction> transactions = await _getRecentTransactions();
+      List<Category> categories = await _getCategories();
+
+      // Generate forecasts using AI engine
+      List<ExpenseForecast> forecasts =
+          await ExpenseForecastingEngine.generateExpenseForecasts(
+            transactions: transactions,
+            categories: categories,
+            forecastDays: forecastDays,
+          );
+
+      if (saveToDatabase) {
+        // Clear old forecasts and save new ones
+        await _clearOldForecasts();
+        await _saveForecasts(forecasts);
+      }
+
+      return forecasts;
+    } catch (e) {
+      throw Exception('Error generating forecasts: $e');
+    }
+  }
+
+  // Detect and save spending anomalies
+  static Future<List<ExpenseAnomaly>> detectAnomalies({
+    int analysisMonths = 6,
+    bool saveToDatabase = true,
+  }) async {
+    try {
+      List<Transaction> transactions = await _getRecentTransactions(
+        months: analysisMonths,
+      );
+      List<Category> categories = await _getCategories();
+
+      List<ExpenseAnomaly> anomalies =
+          await ExpenseForecastingEngine.detectSpendingAnomalies(
+            transactions: transactions,
+            categories: categories,
+            analysisMonths: analysisMonths,
+          );
+
+      if (saveToDatabase) {
+        await _saveAnomalies(anomalies);
+      }
+
+      return anomalies;
+    } catch (e) {
+      throw Exception('Error detecting anomalies: $e');
+    }
+  }
+
+  // Get category spending prediction
+  static Future<CategorySpendingPrediction> predictCategorySpending({
+    required String categoryId,
+    int forecastDays = 30,
+  }) async {
+    try {
+      List<Transaction> transactions = await _getTransactionsByCategory(
+        categoryId,
+      );
+      Category category = await _getCategoryById(categoryId);
+
+      return await ExpenseForecastingEngine.predictCategorySpending(
+        transactions: transactions,
+        categoryId: categoryId,
+        category: category,
+        forecastDays: forecastDays,
+      );
+    } catch (e) {
+      throw Exception('Error predicting category spending: $e');
+    }
+  }
+
+  // Analyze seasonal patterns
+  static Future<SeasonalAnalysis> analyzeSeasonalPatterns({
+    int analysisMonths = 12,
+  }) async {
+    try {
+      List<Transaction> transactions = await _getRecentTransactions(
+        months: analysisMonths,
+      );
+
+      return ExpenseForecastingEngine.analyzeSeasonalPatterns(
+        transactions: transactions,
+        analysisMonths: analysisMonths,
+      );
+    } catch (e) {
+      throw Exception('Error analyzing seasonal patterns: $e');
+    }
+  }
+
+  // Analyze budget variance
+  static Future<List<BudgetVarianceAlert>> analyzeBudgetVariance({
+    int analysisDays = 30,
+  }) async {
+    try {
+      List<Transaction> transactions = await _getRecentTransactions(
+        days: analysisDays,
+      );
+      Map<String, double> budgets = await _getCurrentBudgets();
+
+      return ExpenseForecastingEngine.analyzeBudgetVariance(
+        transactions: transactions,
+        budgets: budgets,
+        analysisDays: analysisDays,
+      );
+    } catch (e) {
+      throw Exception('Error analyzing budget variance: $e');
+    }
+  }
+
+  // Database operations for forecasts
+  static Future<List<ExpenseForecast>> getSavedForecasts({
+    String? categoryId,
+    int? forecastPeriod,
+  }) async {
+    final db = await _db;
+
+    String whereClause = 'validUntil > ?';
+    List<dynamic> whereArgs = [DateTime.now().toIso8601String()];
+
+    if (categoryId != null) {
+      whereClause += ' AND categoryId = ?';
+      whereArgs.add(categoryId);
+    }
+
+    if (forecastPeriod != null) {
+      whereClause += ' AND forecastPeriod = ?';
+      whereArgs.add(forecastPeriod);
+    }
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'expense_forecasts',
+      where: whereClause,
+      whereArgs: whereArgs,
+      orderBy: 'generatedAt DESC',
+    );
+
+    return List.generate(maps.length, (i) => ExpenseForecast.fromMap(maps[i]));
+  }
+
+  static Future<void> saveForecast(ExpenseForecast forecast) async {
+    final db = await _db;
+    await db.insert(
+      'expense_forecasts',
+      forecast.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  static Future<void> _saveForecasts(List<ExpenseForecast> forecasts) async {
+    final db = await _db;
+    Batch batch = db.batch();
+
+    for (ExpenseForecast forecast in forecasts) {
+      batch.insert(
+        'expense_forecasts',
+        forecast.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+
+    await batch.commit();
+  }
+
+  // Database operations for anomalies
+  static Future<List<ExpenseAnomaly>> getSavedAnomalies({
+    AnomalySeverity? minSeverity,
+    int limit = 50,
+  }) async {
+    final db = await _db;
+
+    String whereClause = '';
+    List<dynamic> whereArgs = [];
+
+    if (minSeverity != null) {
+      // Filter by severity level (assuming higher index = higher severity)
+      List<String> allowedSeverities = AnomalySeverity.values
+          .where((s) => s.index >= minSeverity.index)
+          .map((s) => s.toString())
+          .toList();
+
+      whereClause =
+          'severity IN (${allowedSeverities.map((_) => '?').join(',')})';
+      whereArgs.addAll(allowedSeverities);
+    }
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'expense_anomalies',
+      where: whereClause.isNotEmpty ? whereClause : null,
+      whereArgs: whereArgs.isNotEmpty ? whereArgs : null,
+      orderBy: 'detectedAt DESC',
+      limit: limit,
+    );
+
+    return List.generate(maps.length, (i) => ExpenseAnomaly.fromMap(maps[i]));
+  }
+
+  static Future<void> saveAnomaly(ExpenseAnomaly anomaly) async {
+    final db = await _db;
+    await db.insert(
+      'expense_anomalies',
+      anomaly.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  static Future<void> _saveAnomalies(List<ExpenseAnomaly> anomalies) async {
+    final db = await _db;
+    Batch batch = db.batch();
+
+    for (ExpenseAnomaly anomaly in anomalies) {
+      batch.insert(
+        'expense_anomalies',
+        anomaly.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+
+    await batch.commit();
+  }
+
+  // Forecast summary and analytics
+  static Future<ExpenseForecastSummary> generateForecastSummary() async {
+    try {
+      // Get all current forecasts
+      List<ExpenseForecast> forecasts = await getSavedForecasts();
+
+      // Get recent anomalies
+      List<ExpenseAnomaly> anomalies = await getSavedAnomalies(limit: 10);
+
+      // Get seasonal analysis
+      SeasonalAnalysis seasonalAnalysis = await analyzeSeasonalPatterns();
+
+      // Calculate summary metrics
+      double totalPredicted = forecasts
+          .where((f) => f.forecastPeriod == 30) // Focus on monthly forecasts
+          .fold(0, (sum, f) => sum + f.forecastAmount);
+
+      double avgConfidence = forecasts.isNotEmpty
+          ? forecasts.fold(0, (sum, f) => sum + f.confidence) / forecasts.length
+          : 0.0;
+
+      // Get top category forecasts
+      List<ExpenseForecast> topForecasts =
+          forecasts
+              .where((f) => f.categoryId != 'total' && f.forecastPeriod == 30)
+              .toList()
+            ..sort((a, b) => b.forecastAmount.compareTo(a.forecastAmount));
+
+      // Generate insights and recommendations
+      List<String> insights = _generateInsights(
+        forecasts,
+        anomalies,
+        seasonalAnalysis,
+      );
+      List<String> recommendations = _generateRecommendations(
+        forecasts,
+        anomalies,
+      );
+
+      return ExpenseForecastSummary(
+        generatedAt: DateTime.now(),
+        totalForecasts: forecasts.length,
+        totalPredictedExpense: totalPredicted,
+        averageConfidence: avgConfidence,
+        topCategoryForecasts: topForecasts.take(5).toList(),
+        recentAnomalies: anomalies,
+        seasonalAnalysis: seasonalAnalysis,
+        keyInsights: insights,
+        recommendations: recommendations,
+      );
+    } catch (e) {
+      throw Exception('Error generating forecast summary: $e');
+    }
+  }
+
+  // Automatic forecasting and monitoring
+  static Future<void> runAutomaticForecasting() async {
+    try {
+      // Generate fresh forecasts
+      await generateForecasts();
+
+      // Detect new anomalies
+      await detectAnomalies();
+
+      // Clean up old data
+      await _cleanupOldData();
+
+      print('Automatic forecasting completed successfully');
+    } catch (e) {
+      print('Error in automatic forecasting: $e');
+      throw e;
+    }
+  }
+
+  // Export and import functionality
+  static Future<Map<String, dynamic>> exportForecastData() async {
+    try {
+      List<ExpenseForecast> forecasts = await getSavedForecasts();
+      List<ExpenseAnomaly> anomalies = await getSavedAnomalies();
+      SeasonalAnalysis seasonalAnalysis = await analyzeSeasonalPatterns();
+
+      return {
+        'forecasts': forecasts.map((f) => f.toMap()).toList(),
+        'anomalies': anomalies.map((a) => a.toMap()).toList(),
+        'seasonalAnalysis': seasonalAnalysis.toMap(),
+        'exportedAt': DateTime.now().toIso8601String(),
+      };
+    } catch (e) {
+      throw Exception('Error exporting forecast data: $e');
+    }
+  }
+
+  // Utility methods
+  static Future<bool> isForecastingDataAvailable() async {
+    try {
+      List<Transaction> transactions = await _getRecentTransactions(months: 1);
+      return transactions.length >= 10; // Minimum data requirement
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getForecastingStats() async {
+    final db = await _db;
+
+    // Get forecast stats
+    final forecastResult = await db.rawQuery(
+      '''
+      SELECT 
+        COUNT(*) as totalForecasts,
+        AVG(confidence) as avgConfidence,
+        MAX(forecastAmount) as maxForecast,
+        MIN(forecastAmount) as minForecast
+      FROM expense_forecasts 
+      WHERE validUntil > ?
+    ''',
+      [DateTime.now().toIso8601String()],
+    );
+
+    // Get anomaly stats
+    final anomalyResult = await db.rawQuery(
+      '''
+      SELECT 
+        COUNT(*) as totalAnomalies,
+        COUNT(CASE WHEN severity = ? THEN 1 END) as criticalAnomalies,
+        COUNT(CASE WHEN severity = ? THEN 1 END) as highAnomalies
+      FROM expense_anomalies 
+      WHERE detectedAt >= ?
+    ''',
+      [
+        AnomalySeverity.critical.toString(),
+        AnomalySeverity.high.toString(),
+        DateTime.now().subtract(Duration(days: 30)).toIso8601String(),
+      ],
+    );
+
+    return {
+      'forecasts': forecastResult.first,
+      'anomalies': anomalyResult.first,
+    };
+  }
+
+  // Private helper methods
+  static Future<List<Transaction>> _getRecentTransactions({
+    int? months,
+    int? days,
+  }) async {
+    Duration duration;
+    if (days != null) {
+      duration = Duration(days: days);
+    } else {
+      duration = Duration(days: 30 * (months ?? 6));
+    }
+
+    DateTime cutoffDate = DateTime.now().subtract(duration);
+    return await TransactionService.getTransactionsByDateRange(
+      startDate: cutoffDate,
+      endDate: DateTime.now(),
+    );
+  }
+
+  static Future<List<Transaction>> _getTransactionsByCategory(
+    String categoryId,
+  ) async {
+    final db = await _db;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'transactions',
+      where: 'categoryId = ?',
+      whereArgs: [categoryId],
+      orderBy: 'date DESC',
+    );
+
+    return List.generate(maps.length, (i) => Transaction.fromMap(maps[i]));
+  }
+
+  static Future<List<Category>> _getCategories() async {
+    final db = await _db;
+    final List<Map<String, dynamic>> maps = await db.query('categories');
+    return List.generate(maps.length, (i) => Category.fromMap(maps[i]));
+  }
+
+  static Future<Category> _getCategoryById(String categoryId) async {
+    final db = await _db;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'categories',
+      where: 'id = ?',
+      whereArgs: [categoryId],
+    );
+
+    if (maps.isNotEmpty) {
+      return Category.fromMap(maps.first);
+    }
+    throw Exception('Category not found: $categoryId');
+  }
+
+  static Future<Map<String, double>> _getCurrentBudgets() async {
+    final db = await _db;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'budgets',
+      where: 'isActive = 1 AND status = ?',
+      whereArgs: ['BudgetStatus.active'],
+    );
+
+    Map<String, double> budgets = {};
+    for (Map<String, dynamic> map in maps) {
+      budgets[map['categoryId']] = map['amount']?.toDouble() ?? 0.0;
+    }
+
+    return budgets;
+  }
+
+  static Future<void> _clearOldForecasts() async {
+    final db = await _db;
+    await db.delete(
+      'expense_forecasts',
+      where: 'validUntil <= ?',
+      whereArgs: [DateTime.now().toIso8601String()],
+    );
+  }
+
+  static Future<void> _cleanupOldData() async {
+    final db = await _db;
+    final cutoffDate = DateTime.now().subtract(Duration(days: 90));
+
+    // Clean old forecasts
+    await db.delete(
+      'expense_forecasts',
+      where: 'generatedAt < ?',
+      whereArgs: [cutoffDate.toIso8601String()],
+    );
+
+    // Clean old anomalies (keep only last 3 months)
+    await db.delete(
+      'expense_anomalies',
+      where: 'detectedAt < ?',
+      whereArgs: [cutoffDate.toIso8601String()],
+    );
+  }
+
+  static List<String> _generateInsights(
+    List<ExpenseForecast> forecasts,
+    List<ExpenseAnomaly> anomalies,
+    SeasonalAnalysis seasonalAnalysis,
+  ) {
+    List<String> insights = [];
+
+    // Forecast insights
+    if (forecasts.isNotEmpty) {
+      double avgConfidence =
+          forecasts.fold(0, (sum, f) => sum + f.confidence) / forecasts.length;
+      insights.add(
+        'Độ tin cậy dự báo trung bình: ${(avgConfidence * 100).toStringAsFixed(1)}%',
+      );
+
+      List<ExpenseForecast> highConfidenceForecasts = forecasts
+          .where((f) => f.confidence > 0.8)
+          .toList();
+      insights.add(
+        '${highConfidenceForecasts.length}/${forecasts.length} dự báo có độ tin cậy cao',
+      );
+    }
+
+    // Anomaly insights
+    if (anomalies.isNotEmpty) {
+      int criticalAnomalies = anomalies
+          .where((a) => a.severity == AnomalySeverity.critical)
+          .length;
+      if (criticalAnomalies > 0) {
+        insights.add(
+          'Phát hiện $criticalAnomalies bất thường nghiêm trọng cần xem xét',
+        );
+      }
+
+      Map<String, int> categoryAnomalies = {};
+      for (ExpenseAnomaly anomaly in anomalies) {
+        categoryAnomalies[anomaly.categoryName] =
+            (categoryAnomalies[anomaly.categoryName] ?? 0) + 1;
+      }
+
+      if (categoryAnomalies.isNotEmpty) {
+        String topCategory = categoryAnomalies.entries
+            .reduce((a, b) => a.value > b.value ? a : b)
+            .key;
+        insights.add('Danh mục có nhiều bất thường nhất: $topCategory');
+      }
+    }
+
+    // Seasonal insights
+    if (seasonalAnalysis.hasStrongSeasonality) {
+      insights.add(
+        'Phát hiện pattern mùa vụ mạnh - ${seasonalAnalysis.peakMonthName} là tháng chi tiêu cao nhất',
+      );
+    }
+
+    return insights;
+  }
+
+  static List<String> _generateRecommendations(
+    List<ExpenseForecast> forecasts,
+    List<ExpenseAnomaly> anomalies,
+  ) {
+    List<String> recommendations = [];
+
+    // High spending forecasts
+    List<ExpenseForecast> highSpendingForecasts = forecasts
+        .where((f) => f.forecastAmount > 5000000) // > 5M VND
+        .toList();
+
+    if (highSpendingForecasts.isNotEmpty) {
+      recommendations.add(
+        'Một số danh mục dự kiến chi tiêu cao, cân nhắc xem xét ngân sách',
+      );
+    }
+
+    // Low confidence forecasts
+    List<ExpenseForecast> lowConfidenceForecasts = forecasts
+        .where((f) => f.confidence < 0.6)
+        .toList();
+
+    if (lowConfidenceForecasts.isNotEmpty) {
+      recommendations.add(
+        '${lowConfidenceForecasts.length} dự báo có độ tin cậy thấp - cần thêm dữ liệu để cải thiện',
+      );
+    }
+
+    // Critical anomalies
+    List<ExpenseAnomaly> criticalAnomalies = anomalies
+        .where((a) => a.severity == AnomalySeverity.critical)
+        .toList();
+
+    if (criticalAnomalies.isNotEmpty) {
+      recommendations.add(
+        'Xem xét các giao dịch bất thường nghiêm trọng để đảm bảo tính chính xác',
+      );
+    }
+
+    // General recommendations
+    if (recommendations.isEmpty) {
+      recommendations.add(
+        'Tiếp tục theo dõi thói quen chi tiêu để cải thiện độ chính xác dự báo',
+      );
+    }
+
+    return recommendations;
+  }
+}
