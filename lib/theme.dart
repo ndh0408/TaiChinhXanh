@@ -19,6 +19,17 @@ class AppTheme {
   static const Color vcbWarning = Color(0xFFF39C12);
   static const Color vcbError = Color(0xFFE74C3C);
   static const Color vcbInfo = Color(0xFF3498DB);
+  
+  // Legacy color names for compatibility
+  static const Color primaryColor = vcbGreen;
+  static const Color white = vcbWhite;
+  static const Color black = vcbBlack;
+  
+  // Additional gradient colors
+  static const Color primaryStart = vcbGreen;
+  static const Color primaryEnd = vcbDarkGreen;
+  static const Color accentStart = vcbLightGreen;
+  static const Color accentEnd = vcbGreenAccent;
 
   // Text styles with Roboto font (VCB style)
   static TextTheme _textTheme = TextTheme(
@@ -341,6 +352,110 @@ class AppTheme {
       elevation: 8,
     ),
   );
+
+  // Animation durations
+  static const Duration fastDuration = Duration(milliseconds: 200);
+  static const Duration normalDuration = Duration(milliseconds: 300);
+  static const Duration slowDuration = Duration(milliseconds: 500);
+  static const Duration extraSlowDuration = Duration(milliseconds: 800);
+  
+  // Animation curves
+  static const Curve smoothCurve = Curves.easeInOutCubic;
+  static const Curve bounceInCurve = Curves.elasticOut;
+  static const Curve fastOutSlowInCurve = Curves.fastOutSlowIn;
+  static const Curve quickCurve = Curves.easeOutQuart;
+  
+  // Spacing
+  static const double spacing1 = 4.0;
+  static const double spacing2 = 8.0;
+  static const double spacing3 = 12.0;
+  static const double spacing4 = 16.0;
+  static const double spacing5 = 20.0;
+  static const double spacing6 = 24.0;
+  static const double spacing7 = 28.0;
+  static const double spacing8 = 32.0;
+  static const double spacing9 = 36.0;
+  static const double spacing10 = 40.0;
+  static const double spacing12 = 48.0;
+  
+  // Border radius
+  static const double radiusXS = 4.0;
+  static const double radiusSM = 8.0;
+  static const double radiusMD = 12.0;
+  static const double radiusLG = 16.0;
+  static const double radiusXL = 20.0;
+  static const double radius2XL = 24.0;
+  static const double radiusFull = 999.0;
+  
+  // Gradients
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [vcbGreen, vcbDarkGreen],
+  );
+  
+  static const LinearGradient secondaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [vcbLightGreen, vcbGreen],
+  );
+  
+  static const LinearGradient backgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [vcbLightGrey, Colors.white],
+  );
+  
+  // Shadows
+  static List<BoxShadow> cardShadow = [
+    BoxShadow(
+      color: vcbBlack.withOpacity(0.08),
+      blurRadius: 16,
+      offset: const Offset(0, 4),
+    ),
+  ];
+  
+  static List<BoxShadow> elevatedShadow = [
+    BoxShadow(
+      color: vcbBlack.withOpacity(0.12),
+      blurRadius: 24,
+      offset: const Offset(0, 8),
+    ),
+  ];
+  
+  // Helper methods
+  static BoxDecoration glassMorphism({
+    Color? color,
+    double? borderRadius,
+    List<BoxShadow>? boxShadow,
+  }) {
+    return BoxDecoration(
+      color: color ?? vcbWhite.withOpacity(0.9),
+      borderRadius: BorderRadius.circular(borderRadius ?? radiusMD),
+      boxShadow: boxShadow ?? cardShadow,
+      border: Border.all(
+        color: vcbWhite.withOpacity(0.2),
+        width: 1,
+      ),
+    );
+  }
+  
+  // Text styles shortcuts
+  static TextStyle get displayLarge => _textTheme.displayLarge!;
+  static TextStyle get displayMedium => _textTheme.displayMedium!;
+  static TextStyle get displaySmall => _textTheme.displaySmall!;
+  static TextStyle get headlineLarge => _textTheme.headlineLarge!;
+  static TextStyle get headlineMedium => _textTheme.headlineMedium!;
+  static TextStyle get headlineSmall => _textTheme.headlineSmall!;
+  static TextStyle get titleLarge => _textTheme.titleLarge!;
+  static TextStyle get titleMedium => _textTheme.titleMedium!;
+  static TextStyle get titleSmall => _textTheme.titleSmall!;
+  static TextStyle get bodyLarge => _textTheme.bodyLarge!;
+  static TextStyle get bodyMedium => _textTheme.bodyMedium!;
+  static TextStyle get bodySmall => _textTheme.bodySmall!;
+  static TextStyle get labelLarge => _textTheme.labelLarge!;
+  static TextStyle get labelMedium => _textTheme.labelMedium!;
+  static TextStyle get labelSmall => _textTheme.labelSmall!;
 }
 
 // Extension for easy color access
