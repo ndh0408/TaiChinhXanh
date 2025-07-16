@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui';
 
 import 'dashboard_screen.dart';
 import 'transactions_screen.dart';
@@ -20,9 +21,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _navigationController;
   late AnimationController _fabController;
+  late AnimationController _indicatorController;
 
   late Animation<double> _navigationSlideAnimation;
   late Animation<double> _fabScaleAnimation;
+  late Animation<double> _indicatorAnimation;
 
   final List<Widget> _screens = [
     const DashboardScreen(),
@@ -34,34 +37,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   final List<NavigationItem> _navItems = [
     NavigationItem(
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home_rounded,
+      icon: Icons.dashboard_outlined,
+      activeIcon: Icons.dashboard_rounded,
       label: 'Tổng quan',
-      color: AppTheme.vcbGreen,
     ),
     NavigationItem(
-      icon: Icons.receipt_long_outlined,
-      activeIcon: Icons.receipt_long_rounded,
+      icon: Icons.swap_horizontal_circle_outlined,
+      activeIcon: Icons.swap_horizontal_circle,
       label: 'Giao dịch',
-      color: AppTheme.vcbGreen,
     ),
     NavigationItem(
       icon: Icons.account_balance_wallet_outlined,
-      activeIcon: Icons.account_balance_wallet_rounded,
+      activeIcon: Icons.account_balance_wallet,
       label: 'Ngân sách',
-      color: AppTheme.vcbGreen,
     ),
     NavigationItem(
-      icon: Icons.insights_outlined,
-      activeIcon: Icons.insights_rounded,
+      icon: Icons.pie_chart_outline,
+      activeIcon: Icons.pie_chart,
       label: 'Phân tích',
-      color: AppTheme.vcbGreen,
     ),
     NavigationItem(
-      icon: Icons.settings_outlined,
-      activeIcon: Icons.settings_rounded,
+      icon: Icons.manage_accounts_outlined,
+      activeIcon: Icons.manage_accounts,
       label: 'Cài đặt',
-      color: AppTheme.vcbGreen,
     ),
   ];
 
@@ -70,35 +68,78 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _pageController = PageController();
     _setupAnimations();
+    
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: AppTheme.vcbWhite,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
   }
 
   void _setupAnimations() {
     _navigationController = AnimationController(
-      duration: AppTheme.slowDuration,
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
     _fabController = AnimationController(
-      duration: AppTheme.normalDuration,
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
-    _navigationSlideAnimation = Tween<double>(begin: 100.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _navigationController,
-        curve: AppTheme.smoothCurve,
-      ),
+    _indicatorController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
     );
 
-    _fabScaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fabController, curve: AppTheme.bounceInCurve),
-    );
+    _navigationSlideAnimation = Tween<double>(
+      begin: 100.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _navigationController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _fabScaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fabController,
+      curve: Curves.elasticOut,
+    ));
+
+    _indicatorAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _indicatorController,
+      curve: Curves.easeInOut,
+    ));
 
     // Start animations
-    Future.delayed(AppTheme.normalDuration, () {
+    Future.delayed(const Duration(milliseconds: 300), () {
       _navigationController.forward();
       _fabController.forward();
+      _indicatorController.forward();
     });
+  }
+
+  void _onItemTapped(int index) {
+    if (index != _currentIndex) {
+      HapticFeedback.lightImpact();
+      setState(() {
+        _currentIndex = index;
+      });
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      _indicatorController.forward(from: 0);
+    }
   }
 
   @override
@@ -106,311 +147,198 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _pageController.dispose();
     _navigationController.dispose();
     _fabController.dispose();
+    _indicatorController.dispose();
     super.dispose();
-  }
-
-  void _onTabTapped(int index) {
-    if (index == _currentIndex) return;
-
-    // Haptic feedback
-    HapticFeedback.lightImpact();
-
-    setState(() {
-      _currentIndex = index;
-    });
-
-    _pageController.animateToPage(
-      index,
-      duration: AppTheme.normalDuration,
-      curve: AppTheme.smoothCurve,
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final bottomPadding = mediaQuery.padding.bottom;
+    
     return Scaffold(
-      extendBody: true,
-      body: Container(
-        decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
-        child: SafeArea(
-          bottom: false, // Allow bottom navigation to extend
-          child: PageView(
+      backgroundColor: AppTheme.vcbBackground,
+      body: Stack(
+        children: [
+          // Main content
+          PageView(
             controller: _pageController,
             onPageChanged: (index) {
               setState(() {
                 _currentIndex = index;
               });
+              _indicatorController.forward(from: 0);
             },
+            physics: const NeverScrollableScrollPhysics(),
             children: _screens,
           ),
-        ),
-      ),
-
-      // Beautiful Floating Action Button with responsive sizing
-      floatingActionButton: ScaleTransition(
-        scale: _fabScaleAnimation,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppTheme.vcbGreen,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.vcbGreen.withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: FloatingActionButton.extended(
-            onPressed: () {
-              // TODO: Open quick add transaction dialog
-              _showQuickAddDialog(context);
-            },
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            icon: const Icon(
-              Icons.add_rounded,
-              color: AppTheme.white,
-              size: AppTheme.iconLG,
-            ),
-            label: Text(
-              'Thêm',
-              style: AppTheme.labelLarge.copyWith(
-                color: AppTheme.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
-      // Beautiful Bottom Navigation Bar
-      bottomNavigationBar: AnimatedBuilder(
-        animation: _navigationController,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _navigationSlideAnimation.value),
-            child: Container(
-              margin: EdgeInsets.all(AppTheme.spacing4),
-              decoration: AppTheme.glassMorphism(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppTheme.gray800.withValues(alpha: 0.9)
-                    : AppTheme.white.withValues(alpha: 0.9),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-                child: BottomAppBar(
-                  elevation: 0,
-                  color: Colors.transparent,
-                  shape: const CircularNotchedRectangle(),
-                  notchMargin: AppTheme.spacing2,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: AppTheme.spacing4,
-                      vertical: AppTheme.spacing2,
+          
+          // Vietcombank style bottom navigation
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: AnimatedBuilder(
+              animation: _navigationSlideAnimation,
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(0, _navigationSlideAnimation.value),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.vcbWhite,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.vcbBlack.withOpacity(0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, -5),
+                        ),
+                      ],
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // First two tabs
-                        ..._navItems.take(2).map((item) {
-                          final index = _navItems.indexOf(item);
-                          return _buildNavItem(item, index);
-                        }).toList(),
-
-                        // Space for FAB
-                        SizedBox(width: AppTheme.spacing12),
-
-                        // Last three tabs
-                        ..._navItems.skip(2).map((item) {
-                          final index = _navItems.indexOf(item);
-                          return _buildNavItem(item, index);
-                        }).toList(),
+                        // Navigation indicator
+                        AnimatedBuilder(
+                          animation: _indicatorAnimation,
+                          builder: (context, child) {
+                            return Container(
+                              height: 3,
+                              margin: EdgeInsets.only(
+                                left: (mediaQuery.size.width / 5) * _currentIndex,
+                                right: (mediaQuery.size.width / 5) * (4 - _currentIndex),
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: AppTheme.vcbPrimaryGradient,
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(3),
+                                  bottomRight: Radius.circular(3),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        
+                        // Navigation items
+                        Container(
+                          padding: EdgeInsets.only(
+                            top: 8,
+                            bottom: bottomPadding + 8,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: _navItems.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final item = entry.value;
+                              final isSelected = _currentIndex == index;
+                              
+                              return Expanded(
+                                child: InkWell(
+                                  onTap: () => _onItemTapped(index),
+                                  splashColor: AppTheme.vcbPrimaryGreen.withOpacity(0.1),
+                                  highlightColor: AppTheme.vcbPrimaryGreen.withOpacity(0.05),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        AnimatedSwitcher(
+                                          duration: const Duration(milliseconds: 200),
+                                          child: Icon(
+                                            isSelected ? item.activeIcon : item.icon,
+                                            key: ValueKey(isSelected),
+                                            color: isSelected
+                                                ? AppTheme.vcbPrimaryGreen
+                                                : AppTheme.vcbGrey600,
+                                            size: 24,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        AnimatedDefaultTextStyle(
+                                          duration: const Duration(milliseconds: 200),
+                                          style: AppTheme.labelSmall.copyWith(
+                                            color: isSelected
+                                                ? AppTheme.vcbPrimaryGreen
+                                                : AppTheme.vcbGrey600,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.w500,
+                                          ),
+                                          child: Text(item.label),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
-          );
-        },
+          ),
+          
+          // Floating action button for quick actions
+          Positioned(
+            right: 16,
+            bottom: bottomPadding + 100,
+            child: AnimatedBuilder(
+              animation: _fabScaleAnimation,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _fabScaleAnimation.value,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: AppTheme.vcbPrimaryGradient,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.vcbPrimaryGreen.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          HapticFeedback.mediumImpact();
+                          _showQuickActions(context);
+                        },
+                        customBorder: const CircleBorder(),
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.add_rounded,
+                            color: AppTheme.vcbWhite,
+                            size: 28,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildNavItem(NavigationItem item, int index) {
-    final isActive = index == _currentIndex;
-
-    return GestureDetector(
-      onTap: () => _onTabTapped(index),
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOutCubic,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: isActive ? item.color : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                isActive ? item.activeIcon : item.icon,
-                key: ValueKey(isActive),
-                color: isActive
-                    ? AppTheme.vcbWhite
-                    : Theme.of(context).brightness == Brightness.dark
-                        ? AppTheme.vcbGrey
-                        : AppTheme.vcbGrey,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOutCubic,
-              style: TextStyle(
-                fontSize: isActive ? 12 : 11,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                color: isActive
-                    ? AppTheme.vcbWhite
-                    : Theme.of(context).brightness == Brightness.dark
-                        ? AppTheme.vcbGrey
-                        : AppTheme.vcbGrey,
-              ),
-              child: Text(item.label),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showQuickAddDialog(BuildContext context) {
+  void _showQuickActions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppTheme.radiusXL),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Handle bar
-            Container(
-              width: 40,
-              height: 4,
-              margin: EdgeInsets.symmetric(vertical: AppTheme.spacing4),
-              decoration: BoxDecoration(
-                color: AppTheme.gray300,
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              ),
-            ),
-
-            // Title
-            Padding(
-              padding: EdgeInsets.all(AppTheme.spacing6),
-              child: Text(
-                'Thêm giao dịch nhanh',
-                style: AppTheme.headlineMedium,
-              ),
-            ),
-
-            // Quick actions
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                padding: EdgeInsets.all(AppTheme.spacing6),
-                childAspectRatio: 1.5,
-                crossAxisSpacing: AppTheme.spacing4,
-                mainAxisSpacing: AppTheme.spacing4,
-                children: [
-                  _buildQuickActionCard(
-                    'Thu nhập',
-                    Icons.trending_up_rounded,
-                    AppTheme.successGradient,
-                    () {
-                      Navigator.pop(context);
-                      // TODO: Open income form
-                    },
-                  ),
-                  _buildQuickActionCard(
-                    'Chi tiêu',
-                    Icons.trending_down_rounded,
-                    AppTheme.errorGradient,
-                    () {
-                      Navigator.pop(context);
-                      // TODO: Open expense form
-                    },
-                  ),
-                  _buildQuickActionCard(
-                    'Chuyển khoản',
-                    Icons.swap_horiz_rounded,
-                    AppTheme.accentGradient,
-                    () {
-                      Navigator.pop(context);
-                      // TODO: Open transfer form
-                    },
-                  ),
-                  _buildQuickActionCard(
-                    'Tiết kiệm',
-                    Icons.savings_rounded,
-                    AppTheme.warningGradient,
-                    () {
-                      Navigator.pop(context);
-                      // TODO: Open savings form
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickActionCard(
-    String title,
-    IconData icon,
-    LinearGradient gradient,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-          boxShadow: AppTheme.lightShadow,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: AppTheme.white, size: AppTheme.icon2XL),
-            SizedBox(height: AppTheme.spacing2),
-            Text(
-              title,
-              style: AppTheme.titleMedium.copyWith(
-                color: AppTheme.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+      barrierColor: AppTheme.vcbBlack.withOpacity(0.5),
+      builder: (context) => _QuickActionsSheet(),
     );
   }
 }
@@ -419,12 +347,177 @@ class NavigationItem {
   final IconData icon;
   final IconData activeIcon;
   final String label;
-  final Color color;
 
   NavigationItem({
     required this.icon,
     required this.activeIcon,
     required this.label,
-    required this.color,
   });
+}
+
+class _QuickActionsSheet extends StatelessWidget {
+  final List<QuickAction> _actions = [
+    QuickAction(
+      icon: Icons.add_circle_outline,
+      title: 'Thêm giao dịch',
+      subtitle: 'Ghi lại thu chi hàng ngày',
+      color: AppTheme.vcbPrimaryGreen,
+      onTap: () {},
+    ),
+    QuickAction(
+      icon: Icons.camera_alt_outlined,
+      title: 'Quét hóa đơn',
+      subtitle: 'Tự động nhận diện hóa đơn',
+      color: AppTheme.vcbBlue,
+      onTap: () {},
+    ),
+    QuickAction(
+      icon: Icons.account_balance_outlined,
+      title: 'Chuyển tiền',
+      subtitle: 'Chuyển tiền nhanh chóng',
+      color: AppTheme.vcbOrange,
+      onTap: () {},
+    ),
+    QuickAction(
+      icon: Icons.savings_outlined,
+      title: 'Tạo mục tiêu',
+      subtitle: 'Lập kế hoạch tiết kiệm',
+      color: AppTheme.vcbGold,
+      onTap: () {},
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.vcbWhite,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppTheme.radiusXLarge),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppTheme.vcbGrey300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          
+          // Title
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              'Thao tác nhanh',
+              style: AppTheme.headlineSmall.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          
+          // Actions grid
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1.5,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemCount: _actions.length,
+              itemBuilder: (context, index) {
+                final action = _actions[index];
+                return _QuickActionCard(action: action);
+              },
+            ),
+          ),
+          
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+        ],
+      ),
+    );
+  }
+}
+
+class QuickAction {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  QuickAction({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+}
+
+class _QuickActionCard extends StatelessWidget {
+  final QuickAction action;
+
+  const _QuickActionCard({required this.action});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppTheme.vcbGrey100,
+      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.pop(context);
+          action.onTap();
+        },
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: action.color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                ),
+                child: Icon(
+                  action.icon,
+                  color: action.color,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                action.title,
+                style: AppTheme.titleSmall.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                action.subtitle,
+                style: AppTheme.labelSmall.copyWith(
+                  color: AppTheme.vcbTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

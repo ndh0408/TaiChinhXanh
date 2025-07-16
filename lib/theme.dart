@@ -1,471 +1,496 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart';
 
 class AppTheme {
-  // Vietcombank brand colors
-  static const Color vcbGreen = Color(0xFF008B3A);
-  static const Color vcbDarkGreen = Color(0xFF006B2C);
-  static const Color vcbLightGreen = Color(0xFF00A344);
-  static const Color vcbGreenAccent = Color(0xFF66C266);
+  // ===== VIETCOMBANK BRAND COLORS =====
+  // Primary Green (Màu xanh lá chủ đạo của VCB)
+  static const Color vcbPrimaryGreen = Color(0xFF007549);
+  static const Color vcbDarkGreen = Color(0xFF005A37);
+  static const Color vcbLightGreen = Color(0xFF4CAF50);
+  static const Color vcbGreenAccent = Color(0xFF81C784);
   
-  // Supporting colors
-  static const Color vcbGrey = Color(0xFF5A5A5A);
-  static const Color vcbLightGrey = Color(0xFFF5F5F5);
+  // Secondary Colors (Màu phụ)
+  static const Color vcbBlue = Color(0xFF1976D2);
+  static const Color vcbLightBlue = Color(0xFF42A5F5);
+  static const Color vcbOrange = Color(0xFFFF6F00);
+  static const Color vcbGold = Color(0xFFFFC107);
+  
+  // Neutral Colors (Màu trung tính)
   static const Color vcbWhite = Color(0xFFFFFFFF);
-  static const Color vcbBlack = Color(0xFF1A1A1A);
+  static const Color vcbGrey50 = Color(0xFFFAFAFA);
+  static const Color vcbGrey100 = Color(0xFFF5F5F5);
+  static const Color vcbGrey200 = Color(0xFFEEEEEE);
+  static const Color vcbGrey300 = Color(0xFFE0E0E0);
+  static const Color vcbGrey400 = Color(0xFFBDBDBD);
+  static const Color vcbGrey500 = Color(0xFF9E9E9E);
+  static const Color vcbGrey600 = Color(0xFF757575);
+  static const Color vcbGrey700 = Color(0xFF616161);
+  static const Color vcbGrey800 = Color(0xFF424242);
+  static const Color vcbGrey900 = Color(0xFF212121);
+  static const Color vcbBlack = Color(0xFF000000);
   
-  // Semantic colors
-  static const Color vcbSuccess = Color(0xFF00A344);
-  static const Color vcbWarning = Color(0xFFF39C12);
-  static const Color vcbError = Color(0xFFE74C3C);
-  static const Color vcbInfo = Color(0xFF3498DB);
+  // Status Colors (Màu trạng thái)
+  static const Color vcbSuccess = Color(0xFF4CAF50);
+  static const Color vcbWarning = Color(0xFFFF9800);
+  static const Color vcbError = Color(0xFFF44336);
+  static const Color vcbInfo = Color(0xFF2196F3);
   
-  // Legacy color names for compatibility
-  static const Color primaryColor = vcbGreen;
-  static const Color white = vcbWhite;
-  static const Color black = vcbBlack;
+  // Background Colors
+  static const Color vcbBackground = vcbGrey50;
+  static const Color vcbSurface = vcbWhite;
+  static const Color vcbCardBackground = vcbWhite;
   
-  // Additional gradient colors
-  static const Color primaryStart = vcbGreen;
-  static const Color primaryEnd = vcbDarkGreen;
-  static const Color accentStart = vcbLightGreen;
-  static const Color accentEnd = vcbGreenAccent;
-
-  // Text styles with Roboto font (VCB style)
-  static TextTheme _textTheme = TextTheme(
-    displayLarge: GoogleFonts.roboto(
-      fontSize: 32,
-      fontWeight: FontWeight.bold,
-      color: vcbBlack,
-      letterSpacing: -0.5,
-    ),
-    displayMedium: GoogleFonts.roboto(
-      fontSize: 28,
-      fontWeight: FontWeight.bold,
-      color: vcbBlack,
-      letterSpacing: -0.5,
-    ),
-    displaySmall: GoogleFonts.roboto(
-      fontSize: 24,
-      fontWeight: FontWeight.w600,
-      color: vcbBlack,
-    ),
-    headlineLarge: GoogleFonts.roboto(
-      fontSize: 22,
-      fontWeight: FontWeight.w600,
-      color: vcbBlack,
-    ),
-    headlineMedium: GoogleFonts.roboto(
-      fontSize: 20,
-      fontWeight: FontWeight.w600,
-      color: vcbBlack,
-    ),
-    headlineSmall: GoogleFonts.roboto(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-      color: vcbBlack,
-    ),
-    titleLarge: GoogleFonts.roboto(
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
-      color: vcbBlack,
-    ),
-    titleMedium: GoogleFonts.roboto(
-      fontSize: 14,
-      fontWeight: FontWeight.w600,
-      color: vcbBlack,
-    ),
-    titleSmall: GoogleFonts.roboto(
-      fontSize: 12,
-      fontWeight: FontWeight.w600,
-      color: vcbBlack,
-    ),
-    bodyLarge: GoogleFonts.roboto(
-      fontSize: 16,
-      fontWeight: FontWeight.normal,
-      color: vcbGrey,
-    ),
-    bodyMedium: GoogleFonts.roboto(
-      fontSize: 14,
-      fontWeight: FontWeight.normal,
-      color: vcbGrey,
-    ),
-    bodySmall: GoogleFonts.roboto(
-      fontSize: 12,
-      fontWeight: FontWeight.normal,
-      color: vcbGrey,
-    ),
-    labelLarge: GoogleFonts.roboto(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      color: vcbBlack,
-      letterSpacing: 0.5,
-    ),
-    labelMedium: GoogleFonts.roboto(
-      fontSize: 12,
-      fontWeight: FontWeight.w500,
-      color: vcbBlack,
-      letterSpacing: 0.5,
-    ),
-    labelSmall: GoogleFonts.roboto(
-      fontSize: 10,
-      fontWeight: FontWeight.w500,
-      color: vcbGrey,
-      letterSpacing: 0.5,
-    ),
-  );
-
-  static ThemeData lightTheme = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.light,
-    primaryColor: vcbGreen,
-    scaffoldBackgroundColor: vcbLightGrey,
-    
-    colorScheme: const ColorScheme.light(
-      primary: vcbGreen,
-      primaryContainer: vcbLightGreen,
-      secondary: vcbDarkGreen,
-      secondaryContainer: vcbGreenAccent,
-      surface: vcbWhite,
-      background: vcbLightGrey,
-      error: vcbError,
-      onPrimary: vcbWhite,
-      onSecondary: vcbWhite,
-      onSurface: vcbBlack,
-      onBackground: vcbBlack,
-      onError: vcbWhite,
-    ),
-    
-    textTheme: _textTheme,
-    
-    appBarTheme: AppBarTheme(
-      backgroundColor: vcbWhite,
-      foregroundColor: vcbBlack,
-      elevation: 0,
-      centerTitle: false,
-      titleTextStyle: GoogleFonts.roboto(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: vcbBlack,
-      ),
-      iconTheme: const IconThemeData(color: vcbBlack),
-    ),
-    
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: vcbGreen,
-        foregroundColor: vcbWhite,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        textStyle: GoogleFonts.roboto(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
-    
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: vcbGreen,
-        side: const BorderSide(color: vcbGreen, width: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        textStyle: GoogleFonts.roboto(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
-    
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: vcbGreen,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        textStyle: GoogleFonts.roboto(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
-    
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: vcbWhite,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: vcbGreen, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: vcbError),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: vcbError, width: 2),
-      ),
-      labelStyle: GoogleFonts.roboto(
-        fontSize: 14,
-        color: vcbGrey,
-      ),
-      hintStyle: GoogleFonts.roboto(
-        fontSize: 14,
-        color: vcbGrey.withOpacity(0.6),
-      ),
-    ),
-    
-    cardTheme: CardTheme(
-      elevation: 0,
-      color: vcbWhite,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: vcbGrey.withOpacity(0.1)),
-      ),
-    ),
-    
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: vcbWhite,
-      selectedItemColor: vcbGreen,
-      unselectedItemColor: vcbGrey,
-      selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-      unselectedLabelStyle: TextStyle(fontSize: 12),
-      showUnselectedLabels: true,
-      type: BottomNavigationBarType.fixed,
-      elevation: 8,
-    ),
-    
-    dividerTheme: DividerThemeData(
-      color: vcbGrey.withOpacity(0.1),
-      thickness: 1,
-      space: 1,
-    ),
-    
-    iconTheme: const IconThemeData(
-      color: vcbGrey,
-      size: 24,
-    ),
-    
-    chipTheme: ChipThemeData(
-      backgroundColor: vcbLightGrey,
-      selectedColor: vcbGreen.withOpacity(0.1),
-      disabledColor: vcbGrey.withOpacity(0.1),
-      labelStyle: GoogleFonts.roboto(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        color: vcbBlack,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: vcbGrey.withOpacity(0.2)),
-      ),
-    ),
-  );
-
-  static ThemeData darkTheme = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.dark,
-    primaryColor: vcbGreen,
-    scaffoldBackgroundColor: const Color(0xFF121212),
-    
-    colorScheme: ColorScheme.dark(
-      primary: vcbGreen,
-      primaryContainer: vcbDarkGreen,
-      secondary: vcbLightGreen,
-      secondaryContainer: vcbGreenAccent,
-      surface: const Color(0xFF1E1E1E),
-      background: const Color(0xFF121212),
-      error: vcbError,
-      onPrimary: vcbWhite,
-      onSecondary: vcbBlack,
-      onSurface: vcbWhite,
-      onBackground: vcbWhite,
-      onError: vcbWhite,
-    ),
-    
-    textTheme: _textTheme.apply(
-      bodyColor: vcbWhite,
-      displayColor: vcbWhite,
-    ),
-    
-    appBarTheme: AppBarTheme(
-      backgroundColor: const Color(0xFF1E1E1E),
-      foregroundColor: vcbWhite,
-      elevation: 0,
-      centerTitle: false,
-      titleTextStyle: GoogleFonts.roboto(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: vcbWhite,
-      ),
-      iconTheme: const IconThemeData(color: vcbWhite),
-    ),
-    
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: vcbGreen,
-        foregroundColor: vcbWhite,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        textStyle: GoogleFonts.roboto(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
-    
-    cardTheme: CardTheme(
-      elevation: 0,
-      color: const Color(0xFF1E1E1E),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: vcbWhite.withOpacity(0.1)),
-      ),
-    ),
-    
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: Color(0xFF1E1E1E),
-      selectedItemColor: vcbGreen,
-      unselectedItemColor: vcbGrey,
-      selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-      unselectedLabelStyle: TextStyle(fontSize: 12),
-      showUnselectedLabels: true,
-      type: BottomNavigationBarType.fixed,
-      elevation: 8,
-    ),
-  );
-
-  // Animation durations
-  static const Duration fastDuration = Duration(milliseconds: 200);
-  static const Duration normalDuration = Duration(milliseconds: 300);
-  static const Duration slowDuration = Duration(milliseconds: 500);
-  static const Duration extraSlowDuration = Duration(milliseconds: 800);
+  // Text Colors
+  static const Color vcbTextPrimary = vcbGrey900;
+  static const Color vcbTextSecondary = vcbGrey700;
+  static const Color vcbTextHint = vcbGrey500;
+  static const Color vcbTextDisabled = vcbGrey400;
+  static const Color vcbTextOnPrimary = vcbWhite;
   
-  // Animation curves
-  static const Curve smoothCurve = Curves.easeInOutCubic;
-  static const Curve bounceInCurve = Curves.elasticOut;
-  static const Curve fastOutSlowInCurve = Curves.fastOutSlowIn;
-  static const Curve quickCurve = Curves.easeOutQuart;
+  // Divider Color
+  static const Color vcbDivider = vcbGrey300;
   
-  // Spacing
-  static const double spacing1 = 4.0;
-  static const double spacing2 = 8.0;
-  static const double spacing3 = 12.0;
-  static const double spacing4 = 16.0;
-  static const double spacing5 = 20.0;
-  static const double spacing6 = 24.0;
-  static const double spacing7 = 28.0;
-  static const double spacing8 = 32.0;
-  static const double spacing9 = 36.0;
-  static const double spacing10 = 40.0;
-  static const double spacing12 = 48.0;
-  
-  // Border radius
-  static const double radiusXS = 4.0;
-  static const double radiusSM = 8.0;
-  static const double radiusMD = 12.0;
-  static const double radiusLG = 16.0;
-  static const double radiusXL = 20.0;
-  static const double radius2XL = 24.0;
-  static const double radiusFull = 999.0;
-  
-  // Gradients
-  static const LinearGradient primaryGradient = LinearGradient(
+  // ===== GRADIENTS =====
+  static const LinearGradient vcbPrimaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [vcbGreen, vcbDarkGreen],
+    colors: [vcbPrimaryGreen, vcbDarkGreen],
   );
   
-  static const LinearGradient secondaryGradient = LinearGradient(
+  static const LinearGradient vcbAccentGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [vcbLightGreen, vcbGreen],
+    colors: [vcbLightGreen, vcbPrimaryGreen],
   );
   
-  static const LinearGradient backgroundGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [vcbLightGrey, Colors.white],
+  static const LinearGradient vcbCardGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [vcbWhite, vcbGrey50],
   );
   
-  // Shadows
-  static List<BoxShadow> cardShadow = [
+  // ===== SHADOWS =====
+  static List<BoxShadow> vcbShadowSmall = [
+    BoxShadow(
+      color: vcbBlack.withOpacity(0.05),
+      offset: const Offset(0, 1),
+      blurRadius: 3,
+      spreadRadius: 0,
+    ),
+  ];
+  
+  static List<BoxShadow> vcbShadowMedium = [
     BoxShadow(
       color: vcbBlack.withOpacity(0.08),
-      blurRadius: 16,
-      offset: const Offset(0, 4),
+      offset: const Offset(0, 2),
+      blurRadius: 8,
+      spreadRadius: 0,
     ),
   ];
   
-  static List<BoxShadow> elevatedShadow = [
+  static List<BoxShadow> vcbShadowLarge = [
     BoxShadow(
       color: vcbBlack.withOpacity(0.12),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
+      offset: const Offset(0, 4),
+      blurRadius: 16,
+      spreadRadius: 0,
     ),
   ];
   
-  // Helper methods
-  static BoxDecoration glassMorphism({
-    Color? color,
-    double? borderRadius,
-    List<BoxShadow>? boxShadow,
+  // ===== ANIMATION DURATIONS =====
+  static const Duration fastDuration = Duration(milliseconds: 150);
+  static const Duration normalDuration = Duration(milliseconds: 300);
+  static const Duration slowDuration = Duration(milliseconds: 500);
+  
+  // ===== ANIMATION CURVES =====
+  static const Curve smoothCurve = Curves.easeInOutCubic;
+  static const Curve bounceCurve = Curves.elasticOut;
+  static const Curve sharpCurve = Curves.easeOutExpo;
+  
+  // ===== BORDER RADIUS =====
+  static const double radiusSmall = 8.0;
+  static const double radiusMedium = 12.0;
+  static const double radiusLarge = 16.0;
+  static const double radiusXLarge = 24.0;
+  static const double radiusCircular = 999.0;
+  
+  // ===== SPACING =====
+  static const double spaceXSmall = 4.0;
+  static const double spaceSmall = 8.0;
+  static const double spaceMedium = 16.0;
+  static const double spaceLarge = 24.0;
+  static const double spaceXLarge = 32.0;
+  static const double spaceXXLarge = 48.0;
+  
+  // ===== ELEVATION =====
+  static const double elevationSmall = 2.0;
+  static const double elevationMedium = 4.0;
+  static const double elevationLarge = 8.0;
+  
+  // ===== TEXT STYLES WITH BEVIETNAM PRO FONT =====
+  static const String fontFamily = 'BeVietnamPro';
+  
+  static const TextStyle displayLarge = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 32,
+    fontWeight: FontWeight.w700,
+    color: vcbTextPrimary,
+    letterSpacing: -0.5,
+    height: 1.2,
+  );
+  
+  static const TextStyle displayMedium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 28,
+    fontWeight: FontWeight.w700,
+    color: vcbTextPrimary,
+    letterSpacing: -0.5,
+    height: 1.2,
+  );
+  
+  static const TextStyle displaySmall = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    color: vcbTextPrimary,
+    letterSpacing: -0.3,
+    height: 1.3,
+  );
+  
+  static const TextStyle headlineLarge = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 22,
+    fontWeight: FontWeight.w600,
+    color: vcbTextPrimary,
+    letterSpacing: -0.2,
+    height: 1.3,
+  );
+  
+  static const TextStyle headlineMedium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: vcbTextPrimary,
+    letterSpacing: -0.1,
+    height: 1.4,
+  );
+  
+  static const TextStyle headlineSmall = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: vcbTextPrimary,
+    height: 1.4,
+  );
+  
+  static const TextStyle titleLarge = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: vcbTextPrimary,
+    height: 1.5,
+  );
+  
+  static const TextStyle titleMedium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: vcbTextPrimary,
+    height: 1.5,
+  );
+  
+  static const TextStyle titleSmall = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    color: vcbTextPrimary,
+    letterSpacing: 0.1,
+    height: 1.5,
+  );
+  
+  static const TextStyle bodyLarge = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    color: vcbTextSecondary,
+    height: 1.5,
+  );
+  
+  static const TextStyle bodyMedium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: vcbTextSecondary,
+    height: 1.5,
+  );
+  
+  static const TextStyle bodySmall = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: vcbTextSecondary,
+    letterSpacing: 0.1,
+    height: 1.5,
+  );
+  
+  static const TextStyle labelLarge = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: vcbTextPrimary,
+    letterSpacing: 0.1,
+    height: 1.4,
+  );
+  
+  static const TextStyle labelMedium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: vcbTextPrimary,
+    letterSpacing: 0.3,
+    height: 1.4,
+  );
+  
+  static const TextStyle labelSmall = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+    color: vcbTextPrimary,
+    letterSpacing: 0.3,
+    height: 1.4,
+  );
+  
+  // ===== BUTTON STYLES =====
+  static final ButtonStyle primaryButtonStyle = ElevatedButton.styleFrom(
+    foregroundColor: vcbWhite,
+    backgroundColor: vcbPrimaryGreen,
+    elevation: 0,
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(radiusMedium),
+    ),
+    textStyle: titleMedium.copyWith(color: vcbWhite),
+  );
+  
+  static final ButtonStyle secondaryButtonStyle = OutlinedButton.styleFrom(
+    foregroundColor: vcbPrimaryGreen,
+    side: const BorderSide(color: vcbPrimaryGreen, width: 1.5),
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(radiusMedium),
+    ),
+    textStyle: titleMedium,
+  );
+  
+  static final ButtonStyle textButtonStyle = TextButton.styleFrom(
+    foregroundColor: vcbPrimaryGreen,
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    textStyle: titleMedium,
+  );
+  
+  // ===== INPUT DECORATION =====
+  static InputDecoration inputDecoration({
+    String? labelText,
+    String? hintText,
+    Widget? prefixIcon,
+    Widget? suffixIcon,
   }) {
-    return BoxDecoration(
-      color: color ?? vcbWhite.withOpacity(0.9),
-      borderRadius: BorderRadius.circular(borderRadius ?? radiusMD),
-      boxShadow: boxShadow ?? cardShadow,
-      border: Border.all(
-        color: vcbWhite.withOpacity(0.2),
-        width: 1,
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      labelStyle: bodyMedium.copyWith(color: vcbTextSecondary),
+      hintStyle: bodyMedium.copyWith(color: vcbTextHint),
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: vcbGrey100,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(radiusMedium),
+        borderSide: BorderSide.none,
       ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(radiusMedium),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(radiusMedium),
+        borderSide: const BorderSide(color: vcbPrimaryGreen, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(radiusMedium),
+        borderSide: const BorderSide(color: vcbError, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(radiusMedium),
+        borderSide: const BorderSide(color: vcbError, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
   
-  // Text styles shortcuts
-  static TextStyle get displayLarge => _textTheme.displayLarge!;
-  static TextStyle get displayMedium => _textTheme.displayMedium!;
-  static TextStyle get displaySmall => _textTheme.displaySmall!;
-  static TextStyle get headlineLarge => _textTheme.headlineLarge!;
-  static TextStyle get headlineMedium => _textTheme.headlineMedium!;
-  static TextStyle get headlineSmall => _textTheme.headlineSmall!;
-  static TextStyle get titleLarge => _textTheme.titleLarge!;
-  static TextStyle get titleMedium => _textTheme.titleMedium!;
-  static TextStyle get titleSmall => _textTheme.titleSmall!;
-  static TextStyle get bodyLarge => _textTheme.bodyLarge!;
-  static TextStyle get bodyMedium => _textTheme.bodyMedium!;
-  static TextStyle get bodySmall => _textTheme.bodySmall!;
-  static TextStyle get labelLarge => _textTheme.labelLarge!;
-  static TextStyle get labelMedium => _textTheme.labelMedium!;
-  static TextStyle get labelSmall => _textTheme.labelSmall!;
-}
-
-// Extension for easy color access
-extension ThemeColors on BuildContext {
-  Color get primaryColor => Theme.of(this).primaryColor;
-  Color get vcbGreen => AppTheme.vcbGreen;
-  Color get vcbDarkGreen => AppTheme.vcbDarkGreen;
-  Color get vcbLightGreen => AppTheme.vcbLightGreen;
-  Color get vcbSuccess => AppTheme.vcbSuccess;
-  Color get vcbWarning => AppTheme.vcbWarning;
-  Color get vcbError => AppTheme.vcbError;
-  Color get vcbInfo => AppTheme.vcbInfo;
+  // ===== CARD DECORATION =====
+  static BoxDecoration cardDecoration({
+    Color? color,
+    List<BoxShadow>? boxShadow,
+    BorderRadius? borderRadius,
+  }) {
+    return BoxDecoration(
+      color: color ?? vcbCardBackground,
+      borderRadius: borderRadius ?? BorderRadius.circular(radiusMedium),
+      boxShadow: boxShadow ?? vcbShadowMedium,
+    );
+  }
+  
+  // ===== THEME DATA =====
+  static final ThemeData lightTheme = ThemeData(
+    fontFamily: fontFamily,
+    primaryColor: vcbPrimaryGreen,
+    scaffoldBackgroundColor: vcbBackground,
+    colorScheme: const ColorScheme.light(
+      primary: vcbPrimaryGreen,
+      secondary: vcbLightGreen,
+      surface: vcbSurface,
+      error: vcbError,
+      onPrimary: vcbWhite,
+      onSecondary: vcbWhite,
+      onSurface: vcbTextPrimary,
+      onError: vcbWhite,
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: vcbWhite,
+      foregroundColor: vcbTextPrimary,
+      elevation: 0,
+      centerTitle: true,
+      titleTextStyle: headlineSmall,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(style: primaryButtonStyle),
+    outlinedButtonTheme: OutlinedButtonThemeData(style: secondaryButtonStyle),
+    textButtonTheme: TextButtonThemeData(style: textButtonStyle),
+    dividerTheme: const DividerThemeData(
+      color: vcbDivider,
+      thickness: 1,
+      space: 0,
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: vcbWhite,
+      selectedItemColor: vcbPrimaryGreen,
+      unselectedItemColor: vcbGrey600,
+      selectedLabelStyle: labelMedium,
+      unselectedLabelStyle: labelMedium,
+      type: BottomNavigationBarType.fixed,
+      elevation: 8,
+    ),
+    textTheme: const TextTheme(
+      displayLarge: displayLarge,
+      displayMedium: displayMedium,
+      displaySmall: displaySmall,
+      headlineLarge: headlineLarge,
+      headlineMedium: headlineMedium,
+      headlineSmall: headlineSmall,
+      titleLarge: titleLarge,
+      titleMedium: titleMedium,
+      titleSmall: titleSmall,
+      bodyLarge: bodyLarge,
+      bodyMedium: bodyMedium,
+      bodySmall: bodySmall,
+      labelLarge: labelLarge,
+      labelMedium: labelMedium,
+      labelSmall: labelSmall,
+    ),
+  );
+  
+  static final ThemeData darkTheme = ThemeData(
+    fontFamily: fontFamily,
+    primaryColor: vcbLightGreen,
+    scaffoldBackgroundColor: vcbGrey900,
+    colorScheme: ColorScheme.dark(
+      primary: vcbLightGreen,
+      secondary: vcbGreenAccent,
+      surface: vcbGrey800,
+      error: vcbError,
+      onPrimary: vcbBlack,
+      onSecondary: vcbBlack,
+      onSurface: vcbWhite,
+      onError: vcbWhite,
+    ),
+    appBarTheme: AppBarTheme(
+      backgroundColor: vcbGrey900,
+      foregroundColor: vcbWhite,
+      elevation: 0,
+      centerTitle: true,
+      titleTextStyle: headlineSmall.copyWith(color: vcbWhite),
+      systemOverlayStyle: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: primaryButtonStyle.copyWith(
+        backgroundColor: WidgetStateProperty.all(vcbLightGreen),
+        foregroundColor: WidgetStateProperty.all(vcbBlack),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: secondaryButtonStyle.copyWith(
+        foregroundColor: WidgetStateProperty.all(vcbLightGreen),
+        side: WidgetStateProperty.all(
+          const BorderSide(color: vcbLightGreen, width: 1.5),
+        ),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: textButtonStyle.copyWith(
+        foregroundColor: WidgetStateProperty.all(vcbLightGreen),
+      ),
+    ),
+    dividerTheme: const DividerThemeData(
+      color: vcbGrey700,
+      thickness: 1,
+      space: 0,
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: vcbGrey900,
+      selectedItemColor: vcbLightGreen,
+      unselectedItemColor: vcbGrey500,
+      selectedLabelStyle: labelMedium,
+      unselectedLabelStyle: labelMedium,
+      type: BottomNavigationBarType.fixed,
+      elevation: 8,
+    ),
+    textTheme: TextTheme(
+      displayLarge: displayLarge.copyWith(color: vcbWhite),
+      displayMedium: displayMedium.copyWith(color: vcbWhite),
+      displaySmall: displaySmall.copyWith(color: vcbWhite),
+      headlineLarge: headlineLarge.copyWith(color: vcbWhite),
+      headlineMedium: headlineMedium.copyWith(color: vcbWhite),
+      headlineSmall: headlineSmall.copyWith(color: vcbWhite),
+      titleLarge: titleLarge.copyWith(color: vcbWhite),
+      titleMedium: titleMedium.copyWith(color: vcbWhite),
+      titleSmall: titleSmall.copyWith(color: vcbWhite),
+      bodyLarge: bodyLarge.copyWith(color: vcbGrey300),
+      bodyMedium: bodyMedium.copyWith(color: vcbGrey300),
+      bodySmall: bodySmall.copyWith(color: vcbGrey300),
+      labelLarge: labelLarge.copyWith(color: vcbWhite),
+      labelMedium: labelMedium.copyWith(color: vcbWhite),
+      labelSmall: labelSmall.copyWith(color: vcbWhite),
+    ),
+  );
+  
+  // ===== LEGACY COMPATIBILITY =====
+  static const Color primaryColor = vcbPrimaryGreen;
+  static const Color white = vcbWhite;
+  static const Color black = vcbBlack;
+  static const Color primaryStart = vcbPrimaryGreen;
+  static const Color primaryEnd = vcbDarkGreen;
+  static const Color accentStart = vcbLightGreen;
+  static const Color accentEnd = vcbGreenAccent;
+  
+  // Legacy animation curves
+  static const Curve bounceInCurve = bounceCurve;
 }
