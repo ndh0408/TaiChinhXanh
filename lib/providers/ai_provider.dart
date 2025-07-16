@@ -1,5 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
-import 'package:sqflite/sqflite' hide Transaction;
+import 'package:flutter/foundation.dart';
 import '../models/ai_suggestion.dart';
 import '../models/financial_prediction.dart';
 import '../models/transaction.dart';
@@ -8,14 +7,8 @@ import '../models/income_source.dart';
 import '../models/category.dart' as models;
 import '../models/bill.dart';
 import '../models/budget.dart';
-import '../models/category.dart';
-import '../db/db_init.dart';
 import '../services/ai_suggestion_service.dart';
-import '../services/transaction_service.dart';
-import '../services/budget_service.dart';
-import '../services/category_service.dart';
 import '../ai/smart_suggestions_engine.dart';
-import '../ai/smart_budgeting_engine.dart';
 import '../ai/expense_analyzer.dart';
 import '../ai/salary_analyzer.dart';
 

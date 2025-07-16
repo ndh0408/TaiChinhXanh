@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum AppThemeMode { light, dark, system }
@@ -45,7 +45,7 @@ class ThemeProvider with ChangeNotifier {
       _isInitialized = true;
       notifyListeners();
     } catch (e) {
-      debugdebugPrint('[DEBUG]  initializing theme provider: $e');
+      debugPrint('Initializing theme provider: $e');
       _isInitialized = true;
       notifyListeners();
     }
@@ -65,6 +65,7 @@ class ThemeProvider with ChangeNotifier {
   // Save theme mode to SharedPreferences
   Future<void> _saveThemeMode() async {
     await _prefs.setInt(_themeKey, _themeMode.index);
+    debugPrint('Theme saved to SharedPreferences');
   }
 
   // Set theme mode

@@ -1,9 +1,11 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:math';
 import 'package:local_auth/local_auth.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 class SecurityService {
   static const String _pinKey = 'user_pin';
