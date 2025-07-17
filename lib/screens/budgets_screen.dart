@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
@@ -160,7 +160,7 @@ class _BudgetsScreenState extends State<BudgetsScreen>
                 elevation: 0,
                 icon: const Icon(Icons.add_chart, color: Colors.white),
                 label: const Text(
-                  'NgÃ¢n sÃ¡ch má»›i',
+                  'Ngân sách mới',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -1608,7 +1608,7 @@ class _BudgetsScreenState extends State<BudgetsScreen>
                 child: const Icon(Icons.analytics, color: Colors.green),
               ),
               title: const Text('PhÃ¢n tÃ­ch hiá»‡u suáº¥t'),
-              subtitle: const Text('Xem bÃ¡o cÃ¡o chi tiáº¿t'),
+              subtitle: const Text('Xem bÃ¡o cÃ¡o chi tiáº¿u'),
               onTap: () {
                 Navigator.pop(context);
                 // TODO: Implement budget analytics

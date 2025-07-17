@@ -57,83 +57,83 @@ class AppTheme {
   static const double icon2XL = 36.0;
   static const double icon3XL = 48.0;
 
-  // Text styles with Roboto font (VCB style)
+  // Text styles với BeVietnamPro font (đồng bộ toàn app)
   static TextTheme _textTheme = TextTheme(
-    displayLarge: GoogleFonts.roboto(
+    displayLarge: GoogleFonts.beVietnamPro(
       fontSize: 32,
       fontWeight: FontWeight.bold,
       color: vcbBlack,
       letterSpacing: -0.5,
     ),
-    displayMedium: GoogleFonts.roboto(
+    displayMedium: GoogleFonts.beVietnamPro(
       fontSize: 28,
       fontWeight: FontWeight.bold,
       color: vcbBlack,
       letterSpacing: -0.5,
     ),
-    displaySmall: GoogleFonts.roboto(
+    displaySmall: GoogleFonts.beVietnamPro(
       fontSize: 24,
       fontWeight: FontWeight.w600,
       color: vcbBlack,
     ),
-    headlineLarge: GoogleFonts.roboto(
+    headlineLarge: GoogleFonts.beVietnamPro(
       fontSize: 22,
       fontWeight: FontWeight.w600,
       color: vcbBlack,
     ),
-    headlineMedium: GoogleFonts.roboto(
+    headlineMedium: GoogleFonts.beVietnamPro(
       fontSize: 20,
       fontWeight: FontWeight.w600,
       color: vcbBlack,
     ),
-    headlineSmall: GoogleFonts.roboto(
+    headlineSmall: GoogleFonts.beVietnamPro(
       fontSize: 18,
       fontWeight: FontWeight.w600,
       color: vcbBlack,
     ),
-    titleLarge: GoogleFonts.roboto(
+    titleLarge: GoogleFonts.beVietnamPro(
       fontSize: 16,
       fontWeight: FontWeight.w600,
       color: vcbBlack,
     ),
-    titleMedium: GoogleFonts.roboto(
+    titleMedium: GoogleFonts.beVietnamPro(
       fontSize: 14,
       fontWeight: FontWeight.w600,
       color: vcbBlack,
     ),
-    titleSmall: GoogleFonts.roboto(
+    titleSmall: GoogleFonts.beVietnamPro(
       fontSize: 12,
       fontWeight: FontWeight.w600,
       color: vcbBlack,
     ),
-    bodyLarge: GoogleFonts.roboto(
+    bodyLarge: GoogleFonts.beVietnamPro(
       fontSize: 16,
       fontWeight: FontWeight.normal,
       color: vcbGrey,
     ),
-    bodyMedium: GoogleFonts.roboto(
+    bodyMedium: GoogleFonts.beVietnamPro(
       fontSize: 14,
       fontWeight: FontWeight.normal,
       color: vcbGrey,
     ),
-    bodySmall: GoogleFonts.roboto(
+    bodySmall: GoogleFonts.beVietnamPro(
       fontSize: 12,
       fontWeight: FontWeight.normal,
       color: vcbGrey,
     ),
-    labelLarge: GoogleFonts.roboto(
+    labelLarge: GoogleFonts.beVietnamPro(
       fontSize: 14,
       fontWeight: FontWeight.w500,
       color: vcbBlack,
       letterSpacing: 0.5,
     ),
-    labelMedium: GoogleFonts.roboto(
+    labelMedium: GoogleFonts.beVietnamPro(
       fontSize: 12,
       fontWeight: FontWeight.w500,
       color: vcbBlack,
       letterSpacing: 0.5,
     ),
-    labelSmall: GoogleFonts.roboto(
+    labelSmall: GoogleFonts.beVietnamPro(
       fontSize: 10,
       fontWeight: FontWeight.w500,
       color: vcbGrey,
@@ -169,7 +169,7 @@ class AppTheme {
       foregroundColor: vcbBlack,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: GoogleFonts.roboto(
+      titleTextStyle: GoogleFonts.beVietnamPro(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: vcbBlack,
@@ -186,7 +186,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        textStyle: GoogleFonts.roboto(
+        textStyle: GoogleFonts.beVietnamPro(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
@@ -201,7 +201,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        textStyle: GoogleFonts.roboto(
+        textStyle: GoogleFonts.beVietnamPro(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
@@ -212,7 +212,7 @@ class AppTheme {
       style: TextButton.styleFrom(
         foregroundColor: vcbGreen,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        textStyle: GoogleFonts.roboto(
+        textStyle: GoogleFonts.beVietnamPro(
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
@@ -243,11 +243,11 @@ class AppTheme {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: vcbError, width: 2),
       ),
-      labelStyle: GoogleFonts.roboto(
+      labelStyle: GoogleFonts.beVietnamPro(
         fontSize: 14,
         color: vcbGrey,
       ),
-      hintStyle: GoogleFonts.roboto(
+      hintStyle: GoogleFonts.beVietnamPro(
         fontSize: 14,
         color: vcbGrey.withOpacity(0.6),
       ),
@@ -289,7 +289,7 @@ class AppTheme {
       backgroundColor: vcbLightGrey,
       selectedColor: vcbGreen.withOpacity(0.1),
       disabledColor: vcbGrey.withOpacity(0.1),
-      labelStyle: GoogleFonts.roboto(
+      labelStyle: GoogleFonts.beVietnamPro(
         fontSize: 12,
         fontWeight: FontWeight.w500,
         color: vcbBlack,
@@ -333,7 +333,7 @@ class AppTheme {
       foregroundColor: vcbWhite,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: GoogleFonts.roboto(
+      titleTextStyle: GoogleFonts.beVietnamPro(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: vcbWhite,
@@ -350,7 +350,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        textStyle: GoogleFonts.roboto(
+        textStyle: GoogleFonts.beVietnamPro(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
