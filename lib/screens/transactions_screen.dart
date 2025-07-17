@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
@@ -615,8 +615,8 @@ class _TransactionsScreenState extends State<TransactionsScreen>
           SizedBox(height: AppTheme.spacing4),
           Text(
             _searchQuery.isNotEmpty
-                ? 'KhÃ´ng tÃ¬m tháº¥y giao dá»‹ch nÃ o'
-                : 'ChÆ°a cÃ³ giao dá»‹ch nÃ o',
+                ? 'Không tìm thấy giao dịch nào'
+                : 'Chưa có giao dịch nào',
             style: AppTheme.headlineSmall.copyWith(
               color: AppTheme.gray600,
               fontWeight: FontWeight.w600,
@@ -625,8 +625,8 @@ class _TransactionsScreenState extends State<TransactionsScreen>
           SizedBox(height: AppTheme.spacing2),
           Text(
             _searchQuery.isNotEmpty
-                ? 'Thá»­ thay Ä‘á»•i tá»« khÃ³a tÃ¬m kiáº¿m'
-                : 'ThÃªm giao dá»‹ch Ä‘áº§u tiÃªn cá»§a báº¡n',
+                ? 'Thử thay đổi từ khóa tìm kiếm'
+                : 'Thêm giao dịch đầu tiên của bạn',
             style: AppTheme.bodyMedium.copyWith(color: AppTheme.gray500),
             textAlign: TextAlign.center,
           ),
