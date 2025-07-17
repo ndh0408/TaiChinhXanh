@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../providers/transaction_provider.dart';
@@ -159,23 +159,40 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                               // AI Suggestions
                               if (suggestions.isNotEmpty) ...[
-                                _buildSectionHeader('ðŸ¤– Gá»£i Ã½ thÃ´ng minh'),
+                                _buildSectionHeader('🤖 Gợi ý thông minh'),
                                 SizedBox(height: AppTheme.spacing4),
                                 _buildAISuggestionsSection(suggestions),
+                                SizedBox(height: AppTheme.spacing6),
+                              ] else ...[
+                                _buildSectionHeader('🤖 Gợi ý thông minh'),
+                                SizedBox(height: AppTheme.spacing4),
+                                Center(
+                                  child: Text(
+                                    'Chưa có gợi ý nào',
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                ),
                                 SizedBox(height: AppTheme.spacing6),
                               ],
 
                               // Recent Transactions
-                              _buildSectionHeader('ðŸ’³ Giao dá»‹ch gáº§n Ä‘Ã¢y'),
+                              _buildSectionHeader('💳 Giao dịch gần đây'),
                               SizedBox(height: AppTheme.spacing4),
-                              _buildRecentTransactionsSection(
-                                recentTransactions,
-                              ),
+                              recentTransactions.isNotEmpty
+                                  ? _buildRecentTransactionsSection(
+                                      recentTransactions,
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        'Chưa có giao dịch nào',
+                                        style: Theme.of(context).textTheme.bodyMedium,
+                                      ),
+                                    ),
 
                               SizedBox(height: AppTheme.spacing8),
 
                               // Quick Actions
-                              _buildSectionHeader('âš¡ Thao tÃ¡c nhanh'),
+                              _buildSectionHeader('⚡ Thao tác nhanh'),
                               SizedBox(height: AppTheme.spacing4),
                               _buildQuickActionsSection(),
 
@@ -316,7 +333,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Sá»‘ dÆ° hiá»‡n táº¡i',
+                                  'Số dư hiện tại',
                                   style: AppTheme.bodyMedium.copyWith(
                                     color: AppTheme.white.withValues(
                                       alpha: 0.9,
@@ -335,14 +352,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 Row(
                                   children: [
                                     _buildBalanceItem(
-                                      'Thu nháº­p',
+                                      'Thu nhập',
                                       monthlyIncome,
                                       Icons.trending_up_rounded,
                                       AppTheme.successStart,
                                     ),
                                     SizedBox(width: AppTheme.spacing6),
                                     _buildBalanceItem(
-                                      'Chi tiÃªu',
+                                      'Chi tiêu',
                                       totalExpenses,
                                       Icons.trending_down_rounded,
                                       AppTheme.errorStart,
@@ -432,13 +449,13 @@ class _DashboardScreenState extends State<DashboardScreen>
               childAspectRatio: 1.2,
               children: [
                 _buildStatCard(
-                  'Tiáº¿t kiá»‡m',
+                  'Tiết kiệm',
                   '${savingsRate.toStringAsFixed(1)}%',
                   Icons.savings_rounded,
                   AppTheme.successGradient,
                 ),
                 _buildStatCard(
-                  'Giao dá»‹ch',
+                  'Giao dịch',
                   '$transactionCount',
                   Icons.receipt_long_rounded,
                   AppTheme.accentGradient,
@@ -509,7 +526,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             // TODO: Navigate to full section
           },
           child: Text(
-            'Xem táº¥t cáº£',
+            'Xem tất cả',
             style: AppTheme.labelMedium.copyWith(
               color: AppTheme.primaryColor,
               fontWeight: FontWeight.w600,
@@ -604,12 +621,12 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
             SizedBox(height: AppTheme.spacing4),
             Text(
-              'ChÆ°a cÃ³ giao dá»‹ch nÃ o',
+              'Chưa có giao dịch nào',
               style: AppTheme.titleMedium.copyWith(color: AppTheme.gray600),
             ),
             SizedBox(height: AppTheme.spacing2),
             Text(
-              'ThÃªm giao dá»‹ch Ä‘áº§u tiÃªn cá»§a báº¡n',
+              'Thêm giao dịch đầu tiên của bạn',
               style: AppTheme.bodySmall.copyWith(color: AppTheme.gray500),
             ),
           ],
@@ -654,7 +671,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
       ),
       title: Text(
-        transaction.description ?? 'Giao dá»‹ch',
+        transaction.description ?? 'Giao dịch',
         style: AppTheme.titleMedium.copyWith(fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
@@ -681,7 +698,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       childAspectRatio: 2.5,
       children: [
         _buildQuickActionCard(
-          'Xem bÃ¡o cÃ¡o',
+          'Xem báo cáo',
           Icons.analytics_rounded,
           AppTheme.primaryGradient,
           () {
@@ -689,7 +706,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           },
         ),
         _buildQuickActionCard(
-          'Äáº·t ngÃ¢n sÃ¡ch',
+          'Đặt ngân sách',
           Icons.account_balance_wallet_rounded,
           AppTheme.warningGradient,
           () {
@@ -762,26 +779,26 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'ChÃ o buá»•i sÃ¡ng! â˜€ï¸';
-    if (hour < 17) return 'ChÃ o buá»•i chiá»u! ðŸŒ¤ï¸';
-    return 'ChÃ o buá»•i tá»‘i! ðŸŒ™';
+    if (hour < 12) return 'Chào buổi sáng! 😊';
+    if (hour < 17) return 'Chào buổi chiều! 😊';
+    return 'Chào buổi tối! 😊';
   }
 
   String _getCurrentDateString() {
     final now = DateTime.now();
     const months = [
-      'ThÃ¡ng 1',
-      'ThÃ¡ng 2',
-      'ThÃ¡ng 3',
-      'ThÃ¡ng 4',
-      'ThÃ¡ng 5',
-      'ThÃ¡ng 6',
-      'ThÃ¡ng 7',
-      'ThÃ¡ng 8',
-      'ThÃ¡ng 9',
-      'ThÃ¡ng 10',
-      'ThÃ¡ng 11',
-      'ThÃ¡ng 12',
+      'Tháng 1',
+      'Tháng 2',
+      'Tháng 3',
+      'Tháng 4',
+      'Tháng 5',
+      'Tháng 6',
+      'Tháng 7',
+      'Tháng 8',
+      'Tháng 9',
+      'Tháng 10',
+      'Tháng 11',
+      'Tháng 12',
     ];
     return '${months[now.month - 1]}, ${now.year}';
   }
@@ -790,9 +807,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     final now = DateTime.now();
     final difference = now.difference(date).inDays;
 
-    if (difference == 0) return 'HÃ´m nay';
-    if (difference == 1) return 'HÃ´m qua';
-    if (difference < 7) return '$difference ngÃ y trÆ°á»›c';
+    if (difference == 0) return 'Hôm nay';
+    if (difference == 1) return 'Hôm qua';
+    if (difference < 7) return '$difference ngày trước';
 
     return '${date.day}/${date.month}/${date.year}';
   }
